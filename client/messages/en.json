@@ -1,0 +1,11 @@
+{
+  "nav": {
+    "men": "Men",
+    "women": "Women",
+    "children": "Children",
+    "login": "Login",
+    "menu": "Menu",
+    "toggleTheme": "Toggle theme",
+    "toggleLang": "Change language"
+  }
+}
