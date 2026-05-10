@@ -37,6 +37,9 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isFavourite, setIsFavourite] = useState(initialIsFavourite);
 
+  const displayPrice = discountPercentage ? price - (price * discountPercentage / 100) : price;
+  const displayOriginal = originalPrice || (discountPercentage ? price : null);
+
   const handleToggleFavourite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -134,14 +137,14 @@ export function ProductCard({
         {/* Price & Actions */}
         <div className="mt-2 flex items-end justify-between">
           <div className="flex flex-col">
-            {originalPrice && (
+            {displayOriginal && (
               <span className="text-xs font-medium text-muted-foreground line-through decoration-destructive/50">
-                ${originalPrice.toFixed(2)}
+                ${displayOriginal.toFixed(2)}
               </span>
             )}
             <div className="flex items-baseline gap-1">
               <span className="text-lg font-black tracking-tight text-foreground">
-                ${price.toFixed(2)}
+                ${displayPrice.toFixed(2)}
               </span>
             </div>
           </div>

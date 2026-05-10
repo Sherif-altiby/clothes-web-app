@@ -54,12 +54,7 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Desktop Navigation Links */}
-        <nav className="hidden md:flex flex-1 justify-center space-x-8 text-sm font-medium">
-          <Link href="discover/men" className="nav-link "> {t('men')} </Link>
-          <Link href="discover/women" className="nav-link ">{t('women')}</Link>
-          <Link href="discover/children" className="nav-link ">{t('children')}</Link>
-        </nav>
+
 
         {/* Right side actions */}
         <div className="flex items-center space-x-4">
@@ -87,10 +82,7 @@ export function Navbar() {
             <Link href="/login">{t('login')}</Link>
           </Button>
 
-          <Button variant="ghost" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">{t('menu')}</span>
-          </Button>
+
         </div>
       </div>
     </header>

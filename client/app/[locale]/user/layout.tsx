@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "../../globals.css";
 import { Navbar } from "@/components/Navbar";
 import { NextIntlClientProvider } from "next-intl";
+import { PriceFilter } from "@/components/PriceFilter";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +42,14 @@ export default async function Layout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <Navbar />
-          {children}
+          <div className="ctm-container  ">
+            <div className="fixed top-27" >
+              <PriceFilter />
+            </div>
+            <div className="w-[calc(100%-350px)] mt-10 pl-4 ml-auto" >
+              {children}
+            </div>
+          </div>
         </NextIntlClientProvider>
       </body>
     </html>

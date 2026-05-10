@@ -8,17 +8,20 @@ interface PriceFilterProps {
   onSearchChange?: (searchTerm: string) => void;
   onPriceChange?: (min: number, max: number) => void;
   onOrderChange?: (order: "asc" | "desc" | null) => void;
+  onCategoryChange?: (category: string | null) => void;
 }
 
 export function PriceFilter({
   onSearchChange,
   onPriceChange,
   onOrderChange,
+  onCategoryChange,
 }: PriceFilterProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [minPrice, setMinPrice] = useState<string>("");
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [activeOrder, setActiveOrder] = useState<"asc" | "desc" | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -41,8 +44,14 @@ export function PriceFilter({
     if (onOrderChange) onOrderChange(newOrder);
   };
 
+  const handleCategoryChange = (category: string) => {
+    const newCategory = activeCategory === category ? null : category;
+    setActiveCategory(newCategory);
+    if (onCategoryChange) onCategoryChange(newCategory);
+  };
+
   return (
-    <div className="w-[350px] rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-6 shadow-sm transition-all duration-300 hover:shadow-2xl flex flex-col gap-6">
+    <div className="w-[350px] rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-6   transition-all duration-300 hover:shadow-xs flex flex-col gap-6">
       {/* Search Section */}
       <div className="space-y-3">
         <h3 className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
@@ -59,6 +68,30 @@ export function PriceFilter({
             placeholder="Search products..."
             className="w-full rounded-xl border border-input bg-background/50 pl-10 pr-4 py-2.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20 placeholder:text-muted-foreground/60"
           />
+        </div>
+      </div>
+
+      <div className="h-px w-full bg-gradient-to-r from-transparent via-border/60 to-transparent" />
+
+      {/* Category Section */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-semibold tracking-wide text-foreground/80 uppercase">
+          Category
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {["men", "women", "kids"].map((category) => (
+            <Button
+              key={category}
+              variant={activeCategory === category ? "default" : "outline"}
+              onClick={() => handleCategoryChange(category)}
+              className={`rounded-xl flex-1 capitalize transition-all ${activeCategory === category
+                ? "shadow-md shadow-primary/20"
+                : "hover:border-primary/40 hover:bg-primary/5"
+                }`}
+            >
+              {category}
+            </Button>
+          ))}
         </div>
       </div>
 
@@ -102,7 +135,7 @@ export function PriceFilter({
         <Button
           onClick={handlePriceApply}
           variant="secondary"
-          className="w-full rounded-xl font-medium shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+          className="w-full rounded-xl font-medium shadow-sm hover:shadow-sm transition-all active:scale-[0.98]"
         >
           Apply Price Filter
         </Button>
