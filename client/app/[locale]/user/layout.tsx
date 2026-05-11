@@ -42,13 +42,8 @@ export default async function Layout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
           <Navbar />
-          <div className="ctm-container  ">
-            <div className="fixed top-27" >
-              <PriceFilter />
-            </div>
-            <div className="w-[calc(100%-350px)] mt-10 pl-4 ml-auto" >
-              {children}
-            </div>
+          <div className="ctm-container relative ">
+            {children}
           </div>
         </NextIntlClientProvider>
       </body>

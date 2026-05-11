@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import Image from "next/image";
+import Link from "next/link";
 
 export interface ProductCardProps {
   id: string;
@@ -55,7 +56,7 @@ export function ProductCard({
   };
 
   return (
-    <div
+    <Link href={`user/product/${id}`}
       className="group relative w-full max-w-sm rounded-3xl border border-border/50 bg-card/40 p-3 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] overflow-hidden"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -92,17 +93,7 @@ export function ProductCard({
         {/* Subtle overlay gradient on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
 
-        {/* Quick Add Button (appears on hover) */}
-        <div className="absolute bottom-4 left-0 right-0 flex justify-center px-4 opacity-0 translate-y-4 transition-all duration-500 ease-out group-hover:opacity-100 group-hover:translate-y-0">
-          <Button
-            onClick={handleAddToCart}
-            className="w-full rounded-xl bg-background/90 text-foreground backdrop-blur-md hover:bg-background shadow-lg transition-transform active:scale-95 gap-2 font-semibold"
-            variant="secondary"
-          >
-            <ShoppingCart className="h-4 w-4" />
-            Quick Add
-          </Button>
-        </div>
+
       </div>
 
       {/* Content Container */}
@@ -153,12 +144,12 @@ export function ProductCard({
           <Button
             size="icon"
             onClick={handleAddToCart}
-            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90 md:group-hover:opacity-0 md:group-hover:scale-75"
+            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90 "
           >
             <ShoppingCart className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

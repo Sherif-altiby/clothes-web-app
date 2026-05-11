@@ -14,7 +14,7 @@ function getLocale(request: NextRequest): string {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
+
   const pathnameHasLocale = locales.some(
     (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
   );
@@ -25,7 +25,7 @@ export function middleware(request: NextRequest) {
     );
     if (isRootLocale) {
       const locale = pathname.replace('/', '');
-      request.nextUrl.pathname = `/${locale}/discover`;
+      request.nextUrl.pathname = `/${locale}/user`;
       return NextResponse.redirect(request.nextUrl);
     }
     return;
@@ -33,13 +33,13 @@ export function middleware(request: NextRequest) {
 
   // Redirect if there is no locale
   const locale = getLocale(request);
-  
+
   if (pathname === '/') {
-    request.nextUrl.pathname = `/${locale}/discover`;
+    request.nextUrl.pathname = `/${locale}/user`;
   } else {
     request.nextUrl.pathname = `/${locale}${pathname}`;
   }
-  
+
   return NextResponse.redirect(request.nextUrl);
 }
 
