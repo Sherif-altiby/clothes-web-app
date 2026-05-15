@@ -1,6 +1,6 @@
 import express from "express";
-import { notFoundHandler } from "./middlewares/notFound.middleware";
-import { globalErrorHandler } from "./middlewares/error.middleware";
+import { globalErrorHandler } from "./shared/middlewares/error.middleware";
+import { notFoundHandler } from "./shared/middlewares/notFound.middleware";
 
 
 const app = express();
