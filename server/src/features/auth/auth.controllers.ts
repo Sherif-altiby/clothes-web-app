@@ -6,6 +6,13 @@ export const loginController = asyncHandler(async (req: Request, res: Response, 
     const { email, password } = req.body;
     const result = await loginUser(email, password);
 
+    res.cookie("jwtToken", result.token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+
     res.status(200).json({ success: true, data: result });
 });
 
