@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
-import { Heart, ShoppingCart, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { useCart } from "@/lib/cart-context";
+import { useFavourites } from "@/lib/favourites-context";
 
 export interface ProductCardProps {
   id: string;
@@ -16,9 +18,9 @@ export interface ProductCardProps {
   imageUrl: string;
   rating?: number;
   reviewsCount?: number;
-  initialIsFavourite?: boolean;
   onAddToCart?: (id: string) => void;
   onToggleFavourite?: (id: string, isFav: boolean) => void;
+  category: string;
 }
 
 export function ProductCard({
@@ -31,35 +33,66 @@ export function ProductCard({
   imageUrl,
   rating = 4.5,
   reviewsCount = 128,
-  initialIsFavourite = false,
   onAddToCart,
   onToggleFavourite,
+  category,
 }: ProductCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
-  const [isFavourite, setIsFavourite] = useState(initialIsFavourite);
+  const [justAdded, setJustAdded] = useState(false);
+  const { addItem } = useCart();
+  const { isFavourite: isSaved, toggleFavourite } = useFavourites();
+  const isFavourite = isSaved(id);
 
-  const displayPrice = discountPercentage ? price - (price * discountPercentage / 100) : price;
+  const displayPrice = discountPercentage
+    ? price - (price * discountPercentage) / 100
+    : price;
   const displayOriginal = originalPrice || (discountPercentage ? price : null);
+
+  // Show a check mark on the button for a moment after adding
+  useEffect(() => {
+    if (!justAdded) return;
+    const timer = setTimeout(() => setJustAdded(false), 1500);
+    return () => clearTimeout(timer);
+  }, [justAdded]);
 
   const handleToggleFavourite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const newFav = !isFavourite;
-    setIsFavourite(newFav);
+    const newFav = toggleFavourite({
+      id,
+      title,
+      description,
+      price,
+      originalPrice,
+      discountPercentage,
+      imageUrl,
+      rating,
+      reviewsCount,
+      category,
+    });
     if (onToggleFavourite) onToggleFavourite(id, newFav);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
+    e.preventDefault(); // the card is a <Link>, so don't navigate
     e.stopPropagation();
+
+    addItem({
+      id,
+      title,
+      price: displayPrice, // final price after discount
+      originalPrice: displayOriginal,
+      imageUrl,
+      category,
+    });
+
+    setJustAdded(true);
     if (onAddToCart) onAddToCart(id);
   };
 
   return (
-    <Link href={`user/product/${id}`}
+    <Link
+      href={`${category}/${id}`}
       className="group relative w-full max-w-sm rounded-3xl border border-border/50 bg-card/40 p-3 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] overflow-hidden"
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Discount Badge */}
       {discountPercentage && (
@@ -73,10 +106,14 @@ export function ProductCard({
         onClick={handleToggleFavourite}
         className="absolute right-6 top-6 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-background/80 text-muted-foreground shadow-sm backdrop-blur-md transition-all duration-300 hover:bg-background hover:text-destructive hover:scale-110 active:scale-95"
         aria-label="Toggle Favourite"
+        aria-pressed={isFavourite}
       >
         <Heart
-          className={`h-4 w-4 transition-all duration-300 ${isFavourite ? "fill-destructive text-destructive scale-110" : "scale-100"
-            }`}
+          className={`h-4 w-4 transition-all duration-300 ${
+            isFavourite
+              ? "fill-destructive text-destructive scale-110"
+              : "scale-100"
+          }`}
         />
       </button>
 
@@ -92,8 +129,6 @@ export function ProductCard({
 
         {/* Subtle overlay gradient on hover */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-
       </div>
 
       {/* Content Container */}
@@ -115,8 +150,11 @@ export function ProductCard({
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-3 w-3 ${i < Math.floor(rating) ? "fill-current" : "fill-transparent text-muted-foreground/30"
-                  }`}
+                className={`h-3 w-3 ${
+                  i < Math.floor(rating)
+                    ? "fill-current"
+                    : "fill-transparent text-muted-foreground/30"
+                }`}
               />
             ))}
           </div>
@@ -140,13 +178,18 @@ export function ProductCard({
             </div>
           </div>
 
-          {/* Main Add to Cart Button (Mobile visible, Desktop hides on hover as quick add appears) */}
+          {/* Add to Cart */}
           <Button
             size="icon"
             onClick={handleAddToCart}
-            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90 "
+            aria-label="Add to cart"
+            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90"
           >
-            <ShoppingCart className="h-4 w-4" />
+            {justAdded ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <ShoppingCart className="h-4 w-4" />
+            )}
           </Button>
         </div>
       </div>

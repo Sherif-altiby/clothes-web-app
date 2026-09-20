@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { ShoppingCart, Star, Heart, Tag, Shield, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Lens } from "@/components/ui/lens"; // Magic UI Lens (installed via shadcn CLI)
 
-/* ─── mock data ──────────────────────────────────────────────── */
 const PRODUCT_IMAGES = [
     {
         id: 1,
@@ -72,106 +72,6 @@ function StarRating({
     );
 }
 
-/* ─── Image Magnifier ─────────────────────────────────────────── */
-const ZOOM = 2.5;        // magnification level
-const LENS_SIZE = 120;   // lens square size in px
-
-function ImageMagnifier({ src, alt }: { src: string; alt: string }) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [isHovering, setIsHovering] = useState(false);
-    const [lensPos, setLensPos] = useState({ x: 0, y: 0 });         // lens top-left inside container
-    const [bgPos, setBgPos] = useState({ x: 0, y: 0 });             // background-position for zoomed panel
-
-    const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-        const rect = containerRef.current!.getBoundingClientRect();
-        const containerW = rect.width;
-        const containerH = rect.height;
-
-        // Raw cursor position relative to container
-        let cursorX = e.clientX - rect.left;
-        let cursorY = e.clientY - rect.top;
-
-        // Clamp lens inside container bounds
-        let lensX = cursorX - LENS_SIZE / 2;
-        let lensY = cursorY - LENS_SIZE / 2;
-        lensX = Math.max(0, Math.min(lensX, containerW - LENS_SIZE));
-        lensY = Math.max(0, Math.min(lensY, containerH - LENS_SIZE));
-
-        setLensPos({ x: lensX, y: lensY });
-
-        // Percentage of where cursor is in image (0–1)
-        const pctX = cursorX / containerW;
-        const pctY = cursorY / containerH;
-
-        // Zoomed panel: size of zoomed panel (same as container for simplicity)
-        const zoomedW = containerW * ZOOM;
-        const zoomedH = containerH * ZOOM;
-        const panelW = containerW;
-        const panelH = containerH;
-
-        // background-position to center on hovered point
-        const bgX = Math.max(0, Math.min(pctX * zoomedW - panelW / 2, zoomedW - panelW));
-        const bgY = Math.max(0, Math.min(pctY * zoomedH - panelH / 2, zoomedH - panelH));
-
-        setBgPos({ x: bgX, y: bgY });
-    }, []);
-
-    return (
-        <div className="relative flex gap-0">
-            {/* ── Main image container ── */}
-            <div
-                ref={containerRef}
-                className="relative w-full aspect-square rounded-3xl overflow-hidden border border-border/50 bg-muted/20 shadow-xl cursor-crosshair select-none"
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-                onMouseMove={handleMouseMove}
-            >
-                <Image
-                    src={src}
-                    alt={alt}
-                    fill
-                    className="object-cover animate-in fade-in duration-500 pointer-events-none"
-                    sizes="(max-width: 1024px) 100vw, 50vw"
-                    priority
-                />
-
-                {/* Lens overlay */}
-                {isHovering && (
-                    <div
-                        className="absolute border-2 border-white/80 bg-white/20 backdrop-blur-[1px] shadow-lg pointer-events-none z-20 rounded-md"
-                        style={{
-                            width: LENS_SIZE,
-                            height: LENS_SIZE,
-                            left: lensPos.x,
-                            top: lensPos.y,
-                            transition: "left 0.05s, top 0.05s",
-                        }}
-                    />
-                )}
-            </div>
-
-            {/* ── Zoomed panel (floats to the right on desktop) ── */}
-            {isHovering && (
-                <div
-                    className="
-                        hidden lg:block
-                        absolute left-[calc(100%+16px)] top-0 z-50
-                        w-full aspect-square
-                        rounded-2xl overflow-hidden border border-border shadow-2xl
-                        pointer-events-none
-                    "
-                    style={{
-                        backgroundImage: `url(${src})`,
-                        backgroundSize: `${ZOOM * 100}%`,
-                        backgroundPosition: `-${bgPos.x}px -${bgPos.y}px`,
-                        backgroundRepeat: "no-repeat",
-                    }}
-                />
-            )}
-        </div>
-    );
-}
-
 /* ─── Page ───────────────────────────────────────────────────── */
 export default function ProductPage() {
     const [activeIndex, setActiveIndex] = useState(0);
@@ -193,6 +93,8 @@ export default function ProductPage() {
         if (userRating > 0) setRatingSubmitted(true);
     };
 
+    const activeImage = PRODUCT_IMAGES[activeIndex];
+
     return (
         <div className="min-h-screen bg-background py-10 px-4">
             <div className="max-w-6xl mx-auto">
@@ -203,19 +105,34 @@ export default function ProductPage() {
                     {/* ══ LEFT – Image Gallery ══ */}
                     <div className="flex flex-col gap-4">
 
-                        {/* Main image + magnifier */}
+                        {/* Main image + Lens */}
                         <div className="relative">
-                            {/* Discount badge sits above the magnifier wrapper */}
+                            {/* Discount badge */}
                             <div className="absolute top-4 left-4 z-30 flex items-center gap-1.5 bg-destructive/90 text-destructive-foreground text-xs font-bold px-3 py-1.5 rounded-full shadow-lg backdrop-blur-sm pointer-events-none">
                                 <Tag className="h-3 w-3" />
                                 -{discount}% OFF
                             </div>
 
-                            <ImageMagnifier
-                                key={activeIndex}
-                                src={PRODUCT_IMAGES[activeIndex].src}
-                                alt={PRODUCT_IMAGES[activeIndex].alt}
-                            />
+                            <Lens
+                                key={activeIndex} // reset lens state when the image changes
+                                zoomFactor={2.5}
+                                lensSize={150}
+                                isStatic={false}
+                                ariaLabel={`Zoom ${activeImage.alt}`}
+                            >
+                                {/* Lens needs a child with real dimensions,
+                                    so we give it a square box and fill it */}
+                                <div className="relative w-full aspect-square">
+                                    <Image
+                                        src={activeImage.src}
+                                        alt={activeImage.alt}
+                                        fill
+                                        className="object-cover select-none"
+                                        sizes="(max-width: 1024px) 100vw, 50vw"
+                                        priority
+                                    />
+                                </div>
+                            </Lens>
                         </div>
 
                         {/* Thumbnails */}

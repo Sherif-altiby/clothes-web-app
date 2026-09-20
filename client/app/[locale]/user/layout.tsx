@@ -4,6 +4,9 @@ import "../../globals.css";
 import { Navbar } from "@/components/Navbar";
 import { NextIntlClientProvider } from "next-intl";
 import { PriceFilter } from "@/components/PriceFilter";
+import { Footer } from "@/components/home/Footer";
+import { CartProvider } from "@/lib/cart-context";
+import { FavouritesProvider } from "@/lib/favourites-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +32,7 @@ export default async function Layout({
 }) {
   const { locale } = await params;
 
-  const messages =
-    (await import(`@/messages/${locale}.json`)).default;
+  const messages = (await import(`@/messages/${locale}.json`)).default;
 
   return (
     <html
@@ -41,10 +43,13 @@ export default async function Layout({
     >
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <Navbar />
-          <div className="ctm-container relative ">
-            {children}
-          </div>
+          <CartProvider>
+            <FavouritesProvider>
+            <Navbar />
+            <div className="ctm-container relative ">{children}</div>
+            <Footer />
+            </FavouritesProvider>
+          </CartProvider>
         </NextIntlClientProvider>
       </body>
     </html>

@@ -7,5 +7,118 @@
     "menu": "Menu",
     "toggleTheme": "Toggle theme",
     "toggleLang": "Change language"
+  },
+  "home": {
+    "hero": {
+      "label": "Featured collections",
+      "prev": "Previous slide",
+      "next": "Next slide",
+      "goTo": "Go to slide {n}",
+      "slides": {
+        "newSeason": {
+          "title": "Layers for the new season",
+          "subtitle": "Structured jackets, soft knits and everyday basics for the months ahead.",
+          "cta": "Shop the collection"
+        },
+        "denim": {
+          "title": "Denim, redone",
+          "subtitle": "Relaxed fits and clean washes in every size.",
+          "cta": "Shop denim"
+        },
+        "sport": {
+          "title": "Move in comfort",
+          "subtitle": "Lightweight performance wear for training and every day.",
+          "cta": "Shop activewear"
+        }
+      }
+    },
+    "perks": {
+      "shipping": {
+        "title": "Free Shipping",
+        "sub": "Orders over $100"
+      },
+      "returns": {
+        "title": "Easy Returns",
+        "sub": "30-day return window"
+      },
+      "secure": {
+        "title": "Secure Payment",
+        "sub": "Encrypted checkout"
+      },
+      "support": {
+        "title": "Customer Support",
+        "sub": "Here to help every day"
+      }
+    },
+    "categories": {
+      "title": "Shop by category",
+      "women": "Women",
+      "men": "Men",
+      "kids": "Kids",
+      "shoes": "Shoes",
+      "accessories": "Accessories",
+      "sport": "Sport"
+    },
+    "featured": {
+      "title": "New arrivals",
+      "subtitle": "The latest pieces added this week.",
+      "viewAll": "View all"
+    }
+  },
+  "footer": {
+    "tagline": "Modern fashion, made well and priced fairly, delivered to your door.",
+    "newsletter": {
+      "title": "Join the Velnora list",
+      "description": "Get new collections and members-only offers first.",
+      "placeholder": "Your email address",
+      "cta": "Subscribe",
+      "thanks": "Thanks for subscribing!"
+    },
+    "shop": "Shop",
+    "help": "Help",
+    "company": "Company",
+    "links": {
+      "tracking": "Track your order",
+      "shipping": "Shipping & returns",
+      "sizeGuide": "Size guide",
+      "contact": "Contact us",
+      "about": "About Velnora",
+      "careers": "Careers",
+      "sustainability": "Sustainability",
+      "stores": "Our stores"
+    },
+    "rights": "© {year} Velnora. All rights reserved.",
+    "privacy": "Privacy policy",
+    "terms": "Terms & conditions"
+  },
+  "cart": {
+    "title": "سلة التسوق",
+    "itemsCount": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
+    "open": "فتح السلة، {count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
+    "emptyTitle": "سلتك فارغة",
+    "emptyDescription": "أضف ما يعجبك وسيظهر هنا.",
+    "continue": "متابعة التسوق",
+    "clear": "إفراغ السلة",
+    "remove": "إزالة {name}",
+    "increase": "زيادة الكمية",
+    "decrease": "تقليل الكمية",
+    "summary": "ملخص الطلب",
+    "subtotal": "المجموع الفرعي",
+    "shipping": "الشحن",
+    "free": "مجاني",
+    "total": "الإجمالي",
+    "checkout": "إتمام الشراء",
+    "freeShippingLeft": "أضف {amount} للحصول على شحن مجاني",
+    "freeShippingReached": "حصلت على الشحن المجاني"
+  },
+
+  "favourites": {
+    "title": "Favourites",
+    "itemsCount": "{count, plural, one {# saved item} other {# saved items}}",
+    "open": "Open favourites, {count, plural, one {# item} other {# items}}",
+    "emptyTitle": "No favourites yet",
+    "emptyDescription": "Tap the heart on any product to save it here.",
+    "browse": "Browse products",
+    "clear": "Clear all"
   }
 }
