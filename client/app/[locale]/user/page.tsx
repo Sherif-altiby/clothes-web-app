@@ -12,7 +12,7 @@ export default function HomePage() {
             <div className="container mx-auto px-4 pt-6">
                 <HeroSlider />
             </div>
-            <PerksStrip />
+            {/* <PerksStrip /> */}
             <Categories />
             <FeaturedProducts />
          </main>

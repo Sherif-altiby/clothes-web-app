@@ -1,9 +1,9 @@
-import { prisma } from '../../../prisma';
-import { ApiError } from '../../../shared/utils/ApiError';
+import { prisma } from "../../../prisma";
+import { ApiError } from "../../../shared/utils/ApiError";
 
-export const createCategoryService = async (title: string) => {
+export const createCategoryService = async (titleAr: string, titleEn: string) => {
   const existingCategory = await prisma.category.findFirst({
-    where: { title },
+    where: { OR: [{ titleAr }, { titleEn }] },
   });
 
   if (existingCategory) {
@@ -11,15 +11,17 @@ export const createCategoryService = async (title: string) => {
   }
 
   const category = await prisma.category.create({
-    data: {
-      title,
-    },
+    data: { titleAr, titleEn },
   });
 
   return category;
 };
 
-export const updateCategoryService = async (id: string, title: string) => {
+export const updateCategoryService = async (
+  id: string,
+  titleAr?: string,
+  titleEn?: string
+) => {
   const existingCategory = await prisma.category.findUnique({
     where: { id },
   });
@@ -28,9 +30,18 @@ export const updateCategoryService = async (id: string, title: string) => {
     throw new ApiError(404, "Category not found");
   }
 
-  if (title && title !== existingCategory.title) {
+  // Only check the fields that are actually changing
+  const conditions: { titleAr?: string; titleEn?: string }[] = [];
+
+  if (titleAr && titleAr !== existingCategory.titleAr) conditions.push({ titleAr });
+  if (titleEn && titleEn !== existingCategory.titleEn) conditions.push({ titleEn });
+
+  if (conditions.length > 0) {
     const titleExists = await prisma.category.findFirst({
-      where: { title },
+      where: {
+        id: { not: id },
+        OR: conditions,
+      },
     });
 
     if (titleExists) {
@@ -40,7 +51,10 @@ export const updateCategoryService = async (id: string, title: string) => {
 
   const category = await prisma.category.update({
     where: { id },
-    data: { title },
+    data: {
+      ...(titleAr && { titleAr }),
+      ...(titleEn && { titleEn }),
+    },
   });
 
   return category;
@@ -59,5 +73,3 @@ export const deleteCategoryService = async (id: string) => {
     where: { id },
   });
 };
-
-

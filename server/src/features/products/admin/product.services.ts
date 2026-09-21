@@ -2,7 +2,6 @@ import { prisma } from '../../../prisma';
 import { ApiError } from '../../../shared/utils/ApiError';
 import { Product } from '@prisma/client';
 
-
 export const createProductService = async (data: Omit<Product, "id" | "createdAt" | "updatedAt">) => {
     const category = await prisma.category.findUnique({
         where: { id: data.categoryId },
@@ -14,8 +13,10 @@ export const createProductService = async (data: Omit<Product, "id" | "createdAt
 
     const product = await prisma.product.create({
         data: {
-            title: data.title,
-            description: data.description,
+            titleAr: data.titleAr,
+            titleEn: data.titleEn,
+            descriptionAr: data.descriptionAr,
+            descriptionEn: data.descriptionEn,
             baseSalary: data.baseSalary,
             profit: data.profit,
             discount: data.discount || 0,

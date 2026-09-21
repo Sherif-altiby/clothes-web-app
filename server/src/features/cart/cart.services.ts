@@ -1,36 +1,35 @@
-import { prisma } from '../../prisma';
-import { ApiError } from '../../shared/utils/ApiError';
+import { Prisma } from "@prisma/client";
+import { prisma } from "../../prisma";
+import { ApiError } from "../../shared/utils/ApiError";
+import { Lang } from "../../shared/middlewares/lang.middleware";
+import { localizeCart } from "../../shared/utils/localize";
 
-export const getOrCreateCart = async (userId: string) => {
-  let cart = await prisma.cart.findUnique({
+const cartInclude = {
+  items: { include: { product: true } },
+} satisfies Prisma.CartInclude;
+
+// Raw cart (both languages), used internally
+const findOrCreateCart = (userId: string) =>
+  prisma.cart.upsert({
     where: { userId },
-    include: {
-      items: {
-        include: {
-          product: true,
-        },
-      },
-    },
+    update: {},
+    create: { userId },
+    include: cartInclude,
   });
 
-  if (!cart) {
-    cart = await prisma.cart.create({
-      data: { userId },
-      include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
-      },
-    });
-  }
-
-  return cart;
+// Localized cart, returned to the client
+export const getOrCreateCart = async (userId: string, lang: Lang) => {
+  const cart = await findOrCreateCart(userId);
+  return localizeCart(cart, lang);
 };
 
-export const addItemToCart = async (userId: string, productId: string, quantity: number = 1) => {
-  const cart = await getOrCreateCart(userId);
+export const addItemToCart = async (
+  userId: string,
+  lang: Lang,
+  productId: string,
+  quantity: number = 1
+) => {
+  const cart = await findOrCreateCart(userId);
 
   const product = await prisma.product.findUnique({
     where: { id: productId },
@@ -42,14 +41,8 @@ export const addItemToCart = async (userId: string, productId: string, quantity:
 
   const unitPrice = product.baseSalary + product.profit - (product.discount || 0);
 
-  // Check if product is already in the cart
   const existingItem = await prisma.cartItem.findUnique({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId,
-      },
-    },
+    where: { cartId_productId: { cartId: cart.id, productId } },
   });
 
   if (existingItem) {
@@ -62,34 +55,27 @@ export const addItemToCart = async (userId: string, productId: string, quantity:
     });
   } else {
     await prisma.cartItem.create({
-      data: {
-        cartId: cart.id,
-        productId,
-        quantity,
-        unitPrice,
-      },
+      data: { cartId: cart.id, productId, quantity, unitPrice },
     });
   }
 
-  return getOrCreateCart(userId);
+  return getOrCreateCart(userId, lang);
 };
 
-export const updateCartItemQuantity = async (userId: string, productId: string, quantity: number) => {
-  const cart = await prisma.cart.findUnique({
-    where: { userId },
-  });
+export const updateCartItemQuantity = async (
+  userId: string,
+  lang: Lang,
+  productId: string,
+  quantity: number
+) => {
+  const cart = await prisma.cart.findUnique({ where: { userId } });
 
   if (!cart) {
     throw new ApiError(404, "Cart not found");
   }
 
   const existingItem = await prisma.cartItem.findUnique({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId,
-      },
-    },
+    where: { cartId_productId: { cartId: cart.id, productId } },
   });
 
   if (!existingItem) {
@@ -97,9 +83,7 @@ export const updateCartItemQuantity = async (userId: string, productId: string, 
   }
 
   if (quantity <= 0) {
-    await prisma.cartItem.delete({
-      where: { id: existingItem.id },
-    });
+    await prisma.cartItem.delete({ where: { id: existingItem.id } });
   } else {
     await prisma.cartItem.update({
       where: { id: existingItem.id },
@@ -107,50 +91,37 @@ export const updateCartItemQuantity = async (userId: string, productId: string, 
     });
   }
 
-  return getOrCreateCart(userId);
+  return getOrCreateCart(userId, lang);
 };
 
-export const removeItemFromCart = async (userId: string, productId: string) => {
-  const cart = await prisma.cart.findUnique({
-    where: { userId },
-  });
+export const removeItemFromCart = async (userId: string, lang: Lang, productId: string) => {
+  const cart = await prisma.cart.findUnique({ where: { userId } });
 
   if (!cart) {
     throw new ApiError(404, "Cart not found");
   }
 
   const existingItem = await prisma.cartItem.findUnique({
-    where: {
-      cartId_productId: {
-        cartId: cart.id,
-        productId,
-      },
-    },
+    where: { cartId_productId: { cartId: cart.id, productId } },
   });
 
   if (!existingItem) {
     throw new ApiError(404, "Item not found in cart");
   }
 
-  await prisma.cartItem.delete({
-    where: { id: existingItem.id },
-  });
+  await prisma.cartItem.delete({ where: { id: existingItem.id } });
 
-  return getOrCreateCart(userId);
+  return getOrCreateCart(userId, lang);
 };
 
-export const clearCart = async (userId: string) => {
-  const cart = await prisma.cart.findUnique({
-    where: { userId },
-  });
+export const clearCart = async (userId: string, lang: Lang) => {
+  const cart = await prisma.cart.findUnique({ where: { userId } });
 
   if (!cart) {
     throw new ApiError(404, "Cart not found");
   }
 
-  await prisma.cartItem.deleteMany({
-    where: { cartId: cart.id },
-  });
+  await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
 
-  return getOrCreateCart(userId);
+  return getOrCreateCart(userId, lang);
 };

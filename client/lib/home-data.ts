@@ -31,7 +31,7 @@ export const HERO_SLIDES = [
 export const CATEGORIES = [
     { key: "women", href: "user/category/women", image: u("photo-1515886657613-9f3515b0c78f", 800) },
     { key: "men", href: "user/category/men", image: u("photo-1552374196-c4e7ffc6e126", 800) },
-    { key: "kids", href: "/usercategory/kids", image: u("photo-1519238263530-99bdd11df2ea", 800) },
+    { key: "kids", href: "/user/category/kids", image: u("photo-1519238263530-99bdd11df2ea", 800) },
     { key: "shoes", href: "user/category/shoes", image: u("photo-1542291026-7eec264c27ff", 800) },
     { key: "accessories", href: "user/category/accessories", image: u("photo-1584917865442-de89df76afd3", 800) },
     { key: "sport", href: "user/category/sport", image: u("photo-1571019613454-1cb2f99b2d8b", 800) },

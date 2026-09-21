@@ -1,0 +1,21 @@
+model HeroSlide {
+  id String @id @default(cuid())
+
+  titleAr    String
+  titleEn    String
+  subtitleAr String
+  subtitleEn String
+  ctaAr      String // button text, e.g. "تسوق الآن"
+  ctaEn      String // e.g. "Shop Now"
+
+  image String // URL of the slide background image
+  href  String // link the CTA button points to, e.g. "/products/category/xyz"
+
+  order    Int     @default(0) // controls slide sequence in the carousel
+  isActive Boolean @default(true) // lets admins hide a slide without deleting it
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+}

@@ -4,30 +4,30 @@ import { createCategoryService, updateCategoryService, deleteCategoryService } f
 import { ApiError } from "../../../shared/utils/ApiError";
 
 export const createCategoryController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { title } = req.body || {};
+    const { titleAr, titleEn } = req.body || {};
 
-    if (!title) {
-        throw new ApiError(400, "Category title is required");
+    if (!titleAr || !titleEn) {
+        throw new ApiError(400, "Category titleAr and titleEn are required");
     }
 
-    const category = await createCategoryService(title);
+    const category = await createCategoryService(titleAr, titleEn);
 
     res.status(201).json({ success: true, data: category });
 });
 
 export const updateCategoryController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params as { id: string };
-    const { title } = req.body || {};
+    const { titleAr, titleEn } = req.body || {};
 
     if (!id) {
         throw new ApiError(400, "Category ID is required");
     }
 
-    if (!title) {
-        throw new ApiError(400, "Category title is required");
+    if (!titleAr && !titleEn) {
+        throw new ApiError(400, "At least one of titleAr or titleEn is required");
     }
 
-    const updatedCategory = await updateCategoryService(id, title);
+    const updatedCategory = await updateCategoryService(id, titleAr, titleEn);
 
     res.status(200).json({ success: true, data: updatedCategory });
 });
@@ -43,5 +43,3 @@ export const deleteCategoryController = asyncHandler(async (req: Request, res: R
 
     res.status(200).json({ success: true, message: "Category deleted successfully" });
 });
-
-

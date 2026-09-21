@@ -6,6 +6,11 @@ import { productAdminRoutes, productUserRoutes } from "./features/products";
 import authRoutes from "./features/auth";
 import { categoryAdminRoutes, categoryUserRoutes } from "./features/category";
 import { cartRoutes } from "./features/cart";
+import { langMiddleware } from "./shared/middlewares/lang.middleware";
+import { favouritesRoutes } from "./features/favourites";
+import reviewRoutes from "./features/review/review.routes";
+import { orderAdminRoutes, orderRoutes } from "./features/orders";
+import heroSlideRoutes from "./features/heroSlide/heroSlide.routes";
 
 const app = express();
 
@@ -16,6 +21,9 @@ app.use(cookieParser());
 
 // auth routes
 app.use("/api/auth", authRoutes);
+
+// language middleware
+app.use(langMiddleware);
 
 // category user routes
 app.use("/api/user/categories", categoryUserRoutes);
@@ -31,6 +39,17 @@ app.use("/api/admin/product", productAdminRoutes);
 // cart routes
 app.use("/api/user/cart", cartRoutes);
 
+// order routes
+app.use("/api/user/orders", orderRoutes);
+app.use("/api/admin/orders", orderAdminRoutes);
+
+// favourite routes
+app.use("/api/user/favorites", favouritesRoutes);
+
+// review routes
+app.use("/api/user/reviews", reviewRoutes);
+
+app.use("/api", heroSlideRoutes);
 
 // Not Found Middleware
 app.use(notFoundHandler);

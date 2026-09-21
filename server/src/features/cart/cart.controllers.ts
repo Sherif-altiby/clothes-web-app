@@ -10,24 +10,13 @@ import {
 } from './cart.services';
 
 export const getCartController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.userId;
-
-  if (!userId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
-
-  const cart = await getOrCreateCart(userId);
+  const cart = await getOrCreateCart(req.user.userId, req.lang);
 
   res.status(200).json({ success: true, data: cart });
 });
 
 export const addItemController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.userId;
   const { productId, quantity } = req.body || {};
-
-  if (!userId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
 
   if (!productId) {
     throw new ApiError(400, 'Product ID is required');
@@ -38,18 +27,13 @@ export const addItemController = asyncHandler(async (req: Request, res: Response
     throw new ApiError(400, 'Quantity must be a positive integer');
   }
 
-  const cart = await addItemToCart(userId, productId, parsedQuantity);
+  const cart = await addItemToCart(req.user.userId, req.lang, productId, parsedQuantity);
 
   res.status(200).json({ success: true, data: cart });
 });
 
 export const updateItemQuantityController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.userId;
   const { productId, quantity } = req.body || {};
-
-  if (!userId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
 
   if (!productId) {
     throw new ApiError(400, 'Product ID is required');
@@ -64,36 +48,25 @@ export const updateItemQuantityController = asyncHandler(async (req: Request, re
     throw new ApiError(400, 'Quantity must be a valid integer');
   }
 
-  const cart = await updateCartItemQuantity(userId, productId, parsedQuantity);
+  const cart = await updateCartItemQuantity(req.user.userId, req.lang, productId, parsedQuantity);
 
   res.status(200).json({ success: true, data: cart });
 });
 
 export const removeItemController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.userId;
   const { productId } = req.params as { productId: string };
-
-  if (!userId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
 
   if (!productId) {
     throw new ApiError(400, 'Product ID is required');
   }
 
-  const cart = await removeItemFromCart(userId, productId);
+  const cart = await removeItemFromCart(req.user.userId, req.lang, productId);
 
   res.status(200).json({ success: true, data: cart });
 });
 
 export const clearCartController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-  const userId = req.user?.userId;
-
-  if (!userId) {
-    throw new ApiError(401, 'Unauthorized');
-  }
-
-  const cart = await clearCart(userId);
+  const cart = await clearCart(req.user.userId, req.lang);
 
   res.status(200).json({ success: true, data: cart });
 });

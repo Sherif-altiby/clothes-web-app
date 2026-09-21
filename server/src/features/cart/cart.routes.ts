@@ -10,9 +10,8 @@ import {
 
 const router = Router();
 
-// All cart routes require user to be authenticated
 router.use(authMiddleware);
-
+ 
 router.get('/', getCartController);
 router.post('/', addItemController);
 router.patch('/', updateItemQuantityController);

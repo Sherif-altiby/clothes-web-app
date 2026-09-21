@@ -1,0 +1,11 @@
+model Category {
+  id String @id @default(cuid())
+
+  titleAr String @unique
+  titleEn String @unique
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
