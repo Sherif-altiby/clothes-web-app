@@ -11,6 +11,7 @@ import { favouritesRoutes } from "./features/favourites";
 import reviewRoutes from "./features/review/review.routes";
 import { orderAdminRoutes, orderRoutes } from "./features/orders";
 import heroSlideRoutes from "./features/heroSlide/heroSlide.routes";
+import { uploadRouter } from "./features/upload";
 
 const app = express();
 
@@ -50,6 +51,9 @@ app.use("/api/user/favorites", favouritesRoutes);
 app.use("/api/user/reviews", reviewRoutes);
 
 app.use("/api", heroSlideRoutes);
+
+//upload images routes
+app.use("/api/upload", uploadRouter);
 
 // Not Found Middleware
 app.use(notFoundHandler);

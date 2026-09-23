@@ -1,7 +1,7 @@
 import { generateJWTToken } from "../../shared/utils/generateJWTToken";
 import { prisma } from "../../prisma";
 import { ApiError } from "../../shared/utils/ApiError";
-import { loginSchema, registerSchema } from "./auth.validation";
+import { loginSchema, registerSchema, updateProfileSchema } from "./auth.validation";
 import { comparePassword, hashPassword } from "../../shared/utils/hashPassword";
 
 
@@ -61,3 +61,33 @@ export const registerUser = async (data: any) => {
 };
 
 
+export const getMe = async (userId: string) => {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) { throw new ApiError(404, "User not found"); }
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return userWithoutPassword;
+};
+
+export const updateProfile = async (userId: string, data: unknown) => {
+    const parsed = updateProfileSchema.safeParse(data);
+
+    if (!parsed.success) {
+        throw new ApiError(400, parsed.error.issues.map(e => e.message).join(", "));
+    }
+
+    const existing = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!existing) { throw new ApiError(404, "User not found"); }
+
+    const user = await prisma.user.update({
+        where: { id: userId },
+        data: parsed.data,
+    });
+
+    const { password: _, ...userWithoutPassword } = user;
+
+    return userWithoutPassword;
+};

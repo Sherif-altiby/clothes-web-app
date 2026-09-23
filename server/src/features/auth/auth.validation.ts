@@ -29,4 +29,13 @@ export const registerSchema = z.object({
 });
 
 
+export const updateProfileSchema = z
+    .object({
+        name: z.string().min(2, "Name must be at least 2 characters").optional(),
+        phone: z.string().min(6, "Invalid phone number").optional(),
+        address: z.string().min(3, "Address is too short").optional(),
+    })
+    .strict() // rejects role, email, password, etc.
+    .refine((d) => Object.keys(d).length > 0, { message: "At least one field is required" });
+
 export type RegisterInput = z.infer<typeof registerSchema>;
