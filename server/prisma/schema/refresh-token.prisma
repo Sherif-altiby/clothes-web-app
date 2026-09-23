@@ -1,0 +1,16 @@
+// 1) Add this model to your schema.prisma
+model RefreshToken {
+  id        String    @id @default(uuid())
+  tokenHash String    @unique // SHA-256 of the token, the raw token is never stored
+  familyId  String // all tokens created by rotating from one login share this id
+  userId    String // must match the type of User.id
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+ 
