@@ -12,9 +12,9 @@ export const ACCESS_TOKEN_MAX_AGE_MS = 15 * 60 * 1000; // 15 minutes
 export const REFRESH_TOKEN_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 const getAccessSecret = () => {
-    const secret = process.env.JWT_ACCESS_SECRET;
+    const secret =   process.env.JWT_SECRET;
 
-    if (!secret) throw new Error("JWT_ACCESS_SECRET is not set");
+    if (!secret) throw new Error("  JWT_SECRET is not set");
 
     return secret;
 };

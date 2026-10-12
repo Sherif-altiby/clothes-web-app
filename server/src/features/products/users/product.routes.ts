@@ -5,7 +5,7 @@ import { authMiddleware } from "../../../shared/middlewares/auth.middleware";
 
 const router = Router();
 
-router.get("/", authMiddleware, getProductsController);
-router.get("/:productId", getProductByIdController);
+router.get("/", getProductsController);
+router.get("/:productId", authMiddleware, getProductByIdController);
 
 export default router;
