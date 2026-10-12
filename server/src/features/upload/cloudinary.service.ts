@@ -112,11 +112,15 @@ export async function uploadToCloudinary(
     return succeeded.map(toUploadedImage);
 }
 
-/** Delete one image (publicId) or many (publicId[]). */
-export const deleteFromCloudinary = async (publicIds: string | string[]): Promise<void> => {
+/** Delete one image (publicId) or many (publicId[]). Returns { [publicId]: "deleted" | "not_found" } */
+export const deleteFromCloudinary = async (
+    publicIds: string | string[]
+): Promise<Record<string, string>> => {
     const ids = Array.isArray(publicIds) ? publicIds : [publicIds];
 
-    if (ids.length === 0) return;
+    if (ids.length === 0) return {};
 
-    await cloudinary.api.delete_resources(ids);
+    const result = await cloudinary.api.delete_resources(ids, { resource_type: "image" });
+
+    return result.deleted as Record<string, string>;
 };
