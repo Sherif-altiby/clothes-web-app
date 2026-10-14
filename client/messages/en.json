@@ -8,12 +8,44 @@
     "toggleTheme": "Toggle theme",
     "toggleLang": "Change language"
   },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to continue to your account.",
+      "email": "Email address",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "success": "Signed in successfully.",
+      "errors": {
+        "requestFailed": "We couldn't sign you in. Check your details and try again.",
+        "invalidResponse": "The server returned an unexpected response."
+      },
+      "validation": {
+        "emailRequired": "Email address is required.",
+        "emailInvalid": "Enter a valid email address.",
+        "passwordRequired": "Password is required.",
+        "passwordMinLength": "Password must be at least 8 characters.",
+        "passwordUppercase": "Password must contain an uppercase letter.",
+        "passwordLowercase": "Password must contain a lowercase letter.",
+        "passwordNumber": "Password must contain a number.",
+        "passwordSpecial": "Password must contain a special character."
+      }
+    }
+  },
   "home": {
     "hero": {
       "label": "Featured collections",
       "prev": "Previous slide",
       "next": "Next slide",
       "goTo": "Go to slide {n}",
+      "loadError": "Featured collections could not be loaded.",
+      "retry": "Try again",
+      "empty": "There are no featured collections right now.",
       "slides": {
         "newSeason": {
           "title": "Layers for the new season",
@@ -57,12 +89,57 @@
       "kids": "Kids",
       "shoes": "Shoes",
       "accessories": "Accessories",
-      "sport": "Sport"
+      "sport": "Sport",
+      "loadError": "Categories could not be loaded.",
+      "retry": "Try again",
+      "empty": "No categories are available yet."
+    },
+    "filters": {
+      "search": "Search products",
+      "searchPlaceholder": "Search by product name...",
+      "category": "Categories",
+      "loadingCategories": "Loading categories",
+      "categoriesError": "Could not load categories.",
+      "retry": "Try again",
+      "sortByPrice": "Sort by price",
+      "highest": "Highest",
+      "lowest": "Lowest",
+      "clearSort": "Clear sorting"
+    },
+    "products": {
+      "results": "Category products",
+      "loadError": "Products could not be loaded.",
+      "retry": "Try again",
+      "updating": "Updating products...",
+      "empty": "No products match these filters.",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {current} of {total}"
+    },
+    "productDetails": {
+      "loadError": "We couldn't load this product. Please try again.",
+      "retry": "Try again",
+      "backToCategory": "Back to {category}",
+      "productImages": "Product images",
+      "off": "OFF",
+      "noImage": "No product image available",
+      "showImage": "Show image {number}",
+      "removeFavourite": "Remove from favourites",
+      "addFavourite": "Add to favourites",
+      "youSave": "You save ${amount}",
+      "inStock": "{count} in stock",
+      "outOfStock": "Out of stock",
+      "decreaseQuantity": "Decrease quantity",
+      "increaseQuantity": "Increase quantity",
+      "addToCart": "Add to cart"
     },
     "featured": {
       "title": "New arrivals",
       "subtitle": "The latest pieces added this week.",
-      "viewAll": "View all"
+      "viewAll": "View all",
+      "loadError": "Featured products could not be loaded.",
+      "retry": "Try again",
+      "empty": "No featured products are available right now."
     }
   },
   "footer": {

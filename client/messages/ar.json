@@ -8,12 +8,44 @@
     "toggleTheme": "تغيير المظهر",
     "toggleLang": "تغيير اللغة"
   },
+  "auth": {
+    "login": {
+      "title": "مرحبًا بعودتك",
+      "subtitle": "سجّل الدخول للمتابعة إلى حسابك.",
+      "email": "البريد الإلكتروني",
+      "emailPlaceholder": "you@example.com",
+      "password": "كلمة المرور",
+      "passwordPlaceholder": "أدخل كلمة المرور",
+      "showPassword": "إظهار كلمة المرور",
+      "hidePassword": "إخفاء كلمة المرور",
+      "submit": "تسجيل الدخول",
+      "submitting": "جارٍ تسجيل الدخول...",
+      "success": "تم تسجيل الدخول بنجاح.",
+      "errors": {
+        "requestFailed": "تعذّر تسجيل الدخول. تحقق من بياناتك وحاول مرة أخرى.",
+        "invalidResponse": "أعاد الخادم استجابة غير متوقعة."
+      },
+      "validation": {
+        "emailRequired": "البريد الإلكتروني مطلوب.",
+        "emailInvalid": "أدخل بريدًا إلكترونيًا صالحًا.",
+        "passwordRequired": "كلمة المرور مطلوبة.",
+        "passwordMinLength": "يجب ألا تقل كلمة المرور عن 8 أحرف.",
+        "passwordUppercase": "يجب أن تحتوي كلمة المرور على حرف كبير.",
+        "passwordLowercase": "يجب أن تحتوي كلمة المرور على حرف صغير.",
+        "passwordNumber": "يجب أن تحتوي كلمة المرور على رقم.",
+        "passwordSpecial": "يجب أن تحتوي كلمة المرور على رمز خاص."
+      }
+    }
+  },
   "home": {
     "hero": {
       "label": "مجموعات مميزة",
       "prev": "الشريحة السابقة",
       "next": "الشريحة التالية",
       "goTo": "انتقل إلى الشريحة {n}",
+      "loadError": "تعذّر تحميل المجموعات المميزة.",
+      "retry": "أعد المحاولة",
+      "empty": "لا توجد مجموعات مميزة حاليًا.",
       "slides": {
         "newSeason": {
           "title": "طبقات أنيقة للموسم الجديد",
@@ -57,12 +89,57 @@
       "kids": "أطفال",
       "shoes": "أحذية",
       "accessories": "إكسسوارات",
-      "sport": "رياضة"
+      "sport": "رياضة",
+      "loadError": "تعذّر تحميل الفئات.",
+      "retry": "أعد المحاولة",
+      "empty": "لا توجد فئات متاحة حاليًا."
+    },
+    "filters": {
+      "search": "البحث عن المنتجات",
+      "searchPlaceholder": "ابحث باسم المنتج...",
+      "category": "الفئات",
+      "loadingCategories": "جارٍ تحميل الفئات",
+      "categoriesError": "تعذّر تحميل الفئات.",
+      "retry": "أعد المحاولة",
+      "sortByPrice": "ترتيب حسب السعر",
+      "highest": "الأعلى",
+      "lowest": "الأقل",
+      "clearSort": "مسح الترتيب"
+    },
+    "products": {
+      "results": "منتجات الفئة",
+      "loadError": "تعذّر تحميل المنتجات.",
+      "retry": "أعد المحاولة",
+      "updating": "جارٍ تحديث المنتجات...",
+      "empty": "لا توجد منتجات تطابق عوامل التصفية.",
+      "previous": "السابق",
+      "next": "التالي",
+      "page": "الصفحة {current} من {total}"
+    },
+    "productDetails": {
+      "loadError": "تعذّر تحميل المنتج. يرجى المحاولة مرة أخرى.",
+      "retry": "أعد المحاولة",
+      "backToCategory": "العودة إلى {category}",
+      "productImages": "صور المنتج",
+      "off": "خصم",
+      "noImage": "لا توجد صورة لهذا المنتج",
+      "showImage": "عرض الصورة {number}",
+      "removeFavourite": "إزالة من المفضلة",
+      "addFavourite": "إضافة إلى المفضلة",
+      "youSave": "توفر ${amount}",
+      "inStock": "متوفر: {count}",
+      "outOfStock": "نفد من المخزون",
+      "decreaseQuantity": "تقليل الكمية",
+      "increaseQuantity": "زيادة الكمية",
+      "addToCart": "أضف إلى السلة"
     },
     "featured": {
       "title": "وصل حديثًا",
       "subtitle": "أحدث القطع التي أضفناها هذا الأسبوع.",
-      "viewAll": "عرض الكل"
+      "viewAll": "عرض الكل",
+      "loadError": "تعذّر تحميل المنتجات المميزة.",
+      "retry": "أعد المحاولة",
+      "empty": "لا توجد منتجات مميزة حاليًا."
     }
   },
   "footer": {

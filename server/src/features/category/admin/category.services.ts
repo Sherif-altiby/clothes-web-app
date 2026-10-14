@@ -1,7 +1,8 @@
 import { prisma } from "../../../prisma";
 import { ApiError } from "../../../shared/utils/ApiError";
+import type { CreateCategoryInput } from "./category.validation";
 
-export const createCategoryService = async (titleAr: string, titleEn: string) => {
+export const createCategoryService = async ({ titleAr, titleEn, image }: CreateCategoryInput) => {
   const existingCategory = await prisma.category.findFirst({
     where: { OR: [{ titleAr }, { titleEn }] },
   });
@@ -11,7 +12,7 @@ export const createCategoryService = async (titleAr: string, titleEn: string) =>
   }
 
   const category = await prisma.category.create({
-    data: { titleAr, titleEn },
+    data: { titleAr, titleEn, image },
   });
 
   return category;

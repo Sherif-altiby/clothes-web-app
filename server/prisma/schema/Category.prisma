@@ -4,6 +4,8 @@ model Category {
   titleAr String @unique
   titleEn String @unique
 
+  image   String
+
   products Product[]
 
   createdAt DateTime @default(now())

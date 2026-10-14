@@ -2,31 +2,44 @@ import { NextFunction, Request, Response } from "express";
 import { asyncHandler } from "../../../shared/utils/asyncHandler";
 import { createCategoryService, updateCategoryService, deleteCategoryService } from "./category.services";
 import { ApiError } from "../../../shared/utils/ApiError";
+import {
+    createCategorySchema,
+    formatCategoryValidationError,
+    updateCategorySchema,
+} from "./category.validation";
 
 export const createCategoryController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { titleAr, titleEn } = req.body || {};
+    const parsed = createCategorySchema.safeParse(req.body);
 
-    if (!titleAr || !titleEn) {
-        throw new ApiError(400, "Category titleAr and titleEn are required");
+    if (!parsed.success) {
+        throw new ApiError(
+            400,
+            formatCategoryValidationError(parsed.error, ["titleAr", "titleEn", "image"])
+        );
     }
 
-    const category = await createCategoryService(titleAr, titleEn);
+    const category = await createCategoryService(parsed.data);
 
     res.status(201).json({ success: true, data: category });
 });
 
 export const updateCategoryController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const { id } = req.params as { id: string };
-    const { titleAr, titleEn } = req.body || {};
 
     if (!id) {
         throw new ApiError(400, "Category ID is required");
     }
 
-    if (!titleAr && !titleEn) {
-        throw new ApiError(400, "At least one of titleAr or titleEn is required");
+    const parsed = updateCategorySchema.safeParse(req.body);
+
+    if (!parsed.success) {
+        throw new ApiError(
+            400,
+            formatCategoryValidationError(parsed.error, ["titleAr", "titleEn"])
+        );
     }
 
+    const { titleAr, titleEn } = parsed.data;
     const updatedCategory = await updateCategoryService(id, titleAr, titleEn);
 
     res.status(200).json({ success: true, data: updatedCategory });

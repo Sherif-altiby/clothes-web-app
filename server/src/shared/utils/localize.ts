@@ -1,7 +1,7 @@
 import { Category, HeroSlide, Prisma, Product } from "@prisma/client";
 import { Lang } from "../middlewares/lang.middleware";
 
-export const localizeProduct = (product: Product, lang: Lang) => {
+export const localizeProduct = <T extends Product>(product: T, lang: Lang) => {
     const { titleAr, titleEn, descriptionAr, descriptionEn, ...rest } = product;
 
     return {
@@ -11,14 +11,23 @@ export const localizeProduct = (product: Product, lang: Lang) => {
     };
 };
 
+
 export const localizeCategory = (category: Category, lang: Lang) => {
     const { titleAr, titleEn, ...rest } = category;
 
     return {
         ...rest,
-        title: lang === "ar" ? titleAr || titleEn : titleEn || titleAr,
+        title: localizeCategoryTitle(category, lang),
     };
 };
+
+export const localizeCategoryTitle = (
+    category: Pick<Category, "titleAr" | "titleEn">,
+    lang: Lang
+) =>
+    lang === "ar"
+        ? category.titleAr || category.titleEn
+        : category.titleEn || category.titleAr;
 
 
 type CartWithItems = Prisma.CartGetPayload<{

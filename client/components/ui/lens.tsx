@@ -29,6 +29,8 @@ interface LensProps {
   lensColor?: string
   /** The aria label of the lens */
   ariaLabel?: string
+  /** Additional classes for the lens container */
+  className?: string
 }
 
 export function Lens({
@@ -41,6 +43,7 @@ export function Lens({
   duration = 0.1,
   lensColor = "black",
   ariaLabel = "Zoom Area",
+  className,
 }: LensProps) {
   if (zoomFactor < 1) {
     throw new Error("zoomFactor must be greater than 1")
@@ -110,7 +113,7 @@ export function Lens({
   return (
     <div
       ref={containerRef}
-      className="relative z-20 overflow-hidden rounded-xl"
+      className={`relative z-20 overflow-hidden rounded-xl ${className ?? ""}`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
       onMouseMove={handleMouseMove}

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../../prisma";
 import { ApiError } from "../../../shared/utils/ApiError";
 import { Lang } from "../../../shared/middlewares/lang.middleware";
-import { localizeProduct } from "../../../shared/utils/localize";
+import { localizeCategoryTitle, localizeProduct } from "../../../shared/utils/localize";
 
 type GetProductsOptions = {
     lang: Lang;
@@ -61,11 +61,31 @@ export const getProducts = async ({
 };
 
 export const getProductById = async (productId: string, lang: Lang) => {
-    if (!productId) { throw new ApiError(400, "Product id is required"); }
+    if (!productId) {
+        throw new ApiError(400, "Product id is required");
+    }
 
-    const product = await prisma.product.findUnique({ where: { id: productId } });
+    const product = await prisma.product.findUnique({
+        where: { id: productId },
+        include: {
+            category: {
+                select: {
+                    titleAr: true,
+                    titleEn: true,
+                },
+            },
+        },
+    });
 
-    if (!product) { throw new ApiError(404, "Product not found"); }
+    if (!product) {
+        throw new ApiError(404, "Product not found");
+    }
 
-    return localizeProduct(product, lang);
+    const localizedProduct = localizeProduct(product, lang);
+    const { category, ...productData } = localizedProduct;
+
+    return {
+        ...productData,
+        categoryTitle: localizeCategoryTitle(category, lang),
+    };
 };

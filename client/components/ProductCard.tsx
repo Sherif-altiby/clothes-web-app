@@ -15,6 +15,7 @@ export interface ProductCardProps {
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
+  counts?: number;
   imageUrl: string;
   rating?: number;
   reviewsCount?: number;
@@ -30,6 +31,7 @@ export function ProductCard({
   price,
   originalPrice,
   discountPercentage,
+  counts,
   imageUrl,
   rating = 4.5,
   reviewsCount = 128,
@@ -95,7 +97,7 @@ export function ProductCard({
       className="group relative w-full max-w-sm rounded-3xl border border-border/50 bg-card/40 p-3 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] overflow-hidden"
     >
       {/* Discount Badge */}
-      {discountPercentage && (
+      {discountPercentage !== undefined && discountPercentage > 0 && counts !== 60 && (
         <div className="absolute left-6 top-6 z-10 flex h-8 items-center justify-center rounded-full bg-destructive/90 px-3 text-xs font-bold text-destructive-foreground shadow-lg backdrop-blur-md transition-transform duration-300 group-hover:scale-105">
           -{discountPercentage}% OFF
         </div>

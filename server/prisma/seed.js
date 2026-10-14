@@ -367,7 +367,7 @@ async function main() {
     const categoriesByKey = {};
     for (const c of categoriesData) {
         categoriesByKey[c.key] = await prisma.category.create({
-            data: { titleAr: c.titleAr, titleEn: c.titleEn },
+            data: { titleAr: c.titleAr, titleEn: c.titleEn, image: img(c.key)[0] },
         });
     }
     console.log(`✔ Categories: ${categoriesData.length}`);

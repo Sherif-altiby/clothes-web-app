@@ -4,6 +4,16 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    const apiServerUrl = (process.env.API_SERVER_URL || "http://localhost:8000").replace(/\/+$/, "");
+
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${apiServerUrl}/api/:path*`,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
