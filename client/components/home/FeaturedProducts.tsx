@@ -61,7 +61,7 @@ export function FeaturedProducts() {
                     <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
                 <Button asChild variant="outline" className="h-10 shrink-0 rounded-xl font-semibold">
-                    <Link href={`/${locale}/user`}>{t("viewAll")}</Link>
+                    <Link href={`user`}>{t("viewAll")}</Link>
                 </Button>
             </div>
 
@@ -89,7 +89,7 @@ export function FeaturedProducts() {
                             discountPercentage={product.discount ?? undefined}
                             counts={product.counts}
                             imageUrl={product.images[0]}
-                            category={`/${locale}/user/category/${product.categoryId}`}
+                            category={`user/category/${product.categoryId}`}
                         />
                     ))}
                 </div>

@@ -2,16 +2,16 @@
 
 import Link from "next/link";
 import { Heart } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/ProductCard";
 import { useFavourites } from "@/lib/favourites-context";
 
 export function FavouritesView() {
     const t = useTranslations("favourites");
-    const { items, hydrated, totalItems, clearFavourites } = useFavourites();
+    const locale = useLocale();
+    const { items, hydrated, error, totalItems, clearFavourites, retry } = useFavourites();
 
-    /* ── Loading (reading localStorage) ── */
     if (!hydrated) {
         return (
             <div className="grid animate-pulse grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -22,7 +22,17 @@ export function FavouritesView() {
         );
     }
 
-    /* ── Empty ── */
+    if (error) {
+        return (
+            <div className="mx-auto max-w-md py-20 text-center" role="alert">
+                <p className="text-muted-foreground">{t("loadError")}</p>
+                <Button type="button" onClick={retry} className="mt-4">
+                    {t("retry")}
+                </Button>
+            </div>
+        );
+    }
+
     if (items.length === 0) {
         return (
             <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-20 text-center">
@@ -32,7 +42,7 @@ export function FavouritesView() {
                 <h1 className="text-2xl font-black tracking-tight text-foreground">{t("emptyTitle")}</h1>
                 <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
                 <Button asChild size="lg" className="mt-2 h-12 rounded-xl px-6 font-bold">
-                    <Link href="/">{t("browse")}</Link>
+                    <Link href={`/${locale}`}>{t("browse")}</Link>
                 </Button>
             </div>
         );
@@ -47,7 +57,7 @@ export function FavouritesView() {
                 </div>
                 <button
                     type="button"
-                    onClick={clearFavourites}
+                    onClick={() => void clearFavourites()}
                     className="text-sm font-medium text-muted-foreground transition-colors hover:text-destructive"
                 >
                     {t("clear")}

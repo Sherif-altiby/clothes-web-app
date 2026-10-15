@@ -8,6 +8,26 @@ export const api = axios.create({
     },
 });
 
+type ApiLocale = "en" | "ar";
+
+let apiLocale: ApiLocale | undefined;
+
+export const setApiLocale = (locale: ApiLocale) => {
+    apiLocale = locale;
+    api.defaults.headers.common["Accept-Language"] = locale;
+};
+
+api.interceptors.request.use((request) => {
+    const routeLocale =
+        typeof window === "undefined"
+            ? undefined
+            : window.location.pathname.match(/^\/(en|ar)(?:\/|$)/)?.[1];
+    const locale = routeLocale === "ar" || routeLocale === "en" ? routeLocale : apiLocale ?? "en";
+
+    request.headers.set("Accept-Language", locale);
+    return request;
+});
+
 declare module "axios" {
     interface InternalAxiosRequestConfig {
         _retry?: boolean;
@@ -51,10 +71,17 @@ api.interceptors.response.use(
 
         const request = error.config;
         const requestUrl = request?.url ?? "";
-        const isAuthRequest = /^\/auth\/(login|register|refresh)(?:\/|$)/.test(requestUrl);
+        const isAuthRequest = /^\/auth\/(login|register|refresh|logout)(?:\/|$)/.test(requestUrl);
+        const isCurrentUserRequest = /^\/auth\/me(?:\/|$)/.test(requestUrl);
+        const isCartReadRequest =
+            request?.method?.toLowerCase() === "get" && /^\/user\/cart(?:\/|$)/.test(requestUrl);
+        const isFavoritesReadRequest =
+            request?.method?.toLowerCase() === "get" && /^\/user\/favorites(?:\/|$)/.test(requestUrl);
+        const shouldAvoidLoginRedirect =
+            isCurrentUserRequest || isCartReadRequest || isFavoritesReadRequest;
 
         if (!request || isAuthRequest || request._retry) {
-            if (request?._retry) redirectToLogin();
+            if (request?._retry && !shouldAvoidLoginRedirect) redirectToLogin();
             return Promise.reject(error);
         }
 
@@ -64,7 +91,7 @@ api.interceptors.response.use(
             await refreshSession();
             return await api.request(request);
         } catch (refreshError) {
-            redirectToLogin();
+            if (!shouldAvoidLoginRedirect) redirectToLogin();
             return Promise.reject(refreshError);
         }
     }

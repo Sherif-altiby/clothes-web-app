@@ -84,23 +84,13 @@ export function ProductDetails({ productId }: { productId: string }) {
     const images = product.images;
     const activeImage = images[activeImageIndex];
     const favourite = isFavourite(product.id);
-    const categoryHref = `/${locale}/user/category/${product.categoryId}`;
+    const categoryHref = `user/category/${product.categoryId}`;
     const maximumQuantity = Math.min(product.counts, 99);
 
     const handleAddToCart = () => {
         if (maximumQuantity < 1) return;
 
-        addItem(
-            {
-                id: product.id,
-                title: product.title,
-                price,
-                originalPrice: hasDiscount ? originalPrice : undefined,
-                imageUrl: activeImage ?? "",
-                category: categoryHref,
-            },
-            Math.min(quantity, maximumQuantity)
-        );
+        void addItem(product.id, Math.min(quantity, maximumQuantity));
     };
 
     const handleToggleFavourite = () => {

@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart-context";
 const FREE_SHIPPING_THRESHOLD = 100;
@@ -13,9 +14,13 @@ const money = (n: number) => `$${n.toFixed(2)}`;
 
 export function CartView() {
     const t = useTranslations("cart");
-    const { items, hydrated, totalItems, subtotal, updateQuantity, removeItem, clearCart } = useCart();
+    const currentLocale = useLocale();
+    const pathname = usePathname();
+    const routeLocale = pathname?.match(/^\/(en|ar)(?:\/|$)/)?.[1];
+    const locale = routeLocale === "ar" || routeLocale === "en" ? routeLocale : currentLocale;
+    const { items, hydrated, error, totalItems, subtotal, updateQuantity, removeItem, clearCart, retry } = useCart();
 
-    /* ── Loading (reading localStorage) ── */
+    /* ── Loading cart data ── */
     if (!hydrated) {
         return (
             <div className="grid animate-pulse gap-8 lg:grid-cols-[1fr_380px]">
@@ -25,6 +30,17 @@ export function CartView() {
                     ))}
                 </div>
                 <div className="h-72 rounded-3xl bg-muted/40" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="mx-auto max-w-md py-20 text-center" role="alert">
+                <p className="text-muted-foreground">{t("loadError")}</p>
+                <Button type="button" onClick={retry} className="mt-4">
+                    {t("retry")}
+                </Button>
             </div>
         );
     }
@@ -39,7 +55,7 @@ export function CartView() {
                 <h1 className="text-2xl font-black tracking-tight text-foreground">{t("emptyTitle")}</h1>
                 <p className="text-sm text-muted-foreground">{t("emptyDescription")}</p>
                 <Button asChild size="lg" className="mt-2 h-12 rounded-xl px-6 font-bold">
-                    <Link href="/">{t("continue")}</Link>
+                    <Link href={`/${locale}`}>{t("continue")}</Link>
                 </Button>
             </div>
         );
@@ -76,7 +92,7 @@ export function CartView() {
                             className="flex gap-4 rounded-2xl border border-border/50 bg-card/40 p-3 backdrop-blur-md"
                         >
                             <Link
-                                href={`/user/product/${item.id}`}
+                                href={`/${locale}/${item.category}/${item.id}`}
                                 className="relative h-28 w-24 shrink-0 overflow-hidden rounded-xl bg-muted/30"
                             >
                                 <Image
@@ -92,7 +108,7 @@ export function CartView() {
                                 <div className="flex items-start justify-between gap-3">
                                     <div className="min-w-0 space-y-1">
                                         <Link
-                                            href={`/user/product/${item.id}`}
+                                            href={`/${locale}/${item.category}/${item.id}`}
                                             className="line-clamp-1 text-base font-bold tracking-tight text-foreground/90 transition-colors hover:text-primary"
                                         >
                                             {item.title}
@@ -192,11 +208,11 @@ export function CartView() {
                         size="lg"
                         className="h-12 w-full rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-primary/25 active:translate-y-0"
                     >
-                        <Link href="/checkout">{t("checkout")}</Link>
+                        <Link href={`/${locale}/checkout`}>{t("checkout")}</Link>
                     </Button>
 
                     <Link
-                        href="/"
+                        href={`/${locale}`}
                         className="block text-center text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                     >
                         {t("continue")}

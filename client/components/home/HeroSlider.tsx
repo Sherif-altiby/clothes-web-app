@@ -91,7 +91,7 @@ export function HeroSlider() {
         return (
             <section
                 aria-label={t("label")}
-                className="flex h-[460px] w-full flex-col items-center justify-center gap-4 rounded-3xl border border-border/50 bg-muted/30 p-6 text-center shadow-xl md:h-[560px]"
+                className="flex h-[calc(100svh-4rem)] w-full flex-col items-center justify-center gap-4 bg-muted/30 p-6 text-center shadow-xl"
                 role="alert"
             >
                 <p className="text-muted-foreground">{t("loadError")}</p>
@@ -106,7 +106,7 @@ export function HeroSlider() {
         return (
             <section
                 aria-label={t("label")}
-                className="flex h-[460px] w-full items-center justify-center rounded-3xl border border-border/50 bg-muted/30 p-6 text-center md:h-[560px]"
+                className="flex h-[calc(100svh-4rem)] w-full items-center justify-center bg-muted/30 p-6 text-center"
             >
                 <p className="text-muted-foreground">{t("empty")}</p>
             </section>
@@ -119,7 +119,7 @@ export function HeroSlider() {
         <section
             aria-roledescription="carousel"
             aria-label={t("label")}
-            className="relative h-[460px] w-full overflow-hidden rounded-3xl border border-border/50 bg-muted/30 shadow-xl md:h-[560px]"
+            className="relative h-[calc(100svh-4rem)] w-full overflow-hidden bg-muted/30 shadow-xl"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
             onFocus={() => setPaused(true)}

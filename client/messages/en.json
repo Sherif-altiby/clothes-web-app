@@ -3,10 +3,29 @@
     "men": "Men",
     "women": "Women",
     "children": "Children",
+    "categories": "Product categories",
     "login": "Login",
+    "account": "My account",
+    "cart": "Cart",
+    "favourites": "Favourites",
+    "logout": "Log out",
+    "logoutSuccess": "You have been logged out.",
+    "logoutError": "We couldn't log you out. Please try again.",
+    "authStatusError": "We couldn't check your account status. Please try again.",
     "menu": "Menu",
     "toggleTheme": "Toggle theme",
     "toggleLang": "Change language"
+  },
+  "profile": {
+    "eyebrow": "YOUR ACCOUNT",
+    "detailsTitle": "Personal information",
+    "email": "Email address",
+    "phone": "Phone number",
+    "address": "Address",
+    "memberSince": "Member since",
+    "notProvided": "Not provided",
+    "loadError": "We couldn't load your profile. Please try again.",
+    "retry": "Try again"
   },
   "auth": {
     "login": {
@@ -112,6 +131,7 @@
       "retry": "Try again",
       "updating": "Updating products...",
       "empty": "No products match these filters.",
+      "emptyHint": "Try adjusting your search or filters to find what you're looking for.",
       "previous": "Previous",
       "next": "Next",
       "page": "Page {current} of {total}"
@@ -169,24 +189,31 @@
     "terms": "Terms & conditions"
   },
   "cart": {
-    "title": "سلة التسوق",
-    "itemsCount": "{count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
-    "open": "فتح السلة، {count, plural, zero {لا منتجات} one {منتج واحد} two {منتجان} few {# منتجات} many {# منتجًا} other {# منتج}}",
-    "emptyTitle": "سلتك فارغة",
-    "emptyDescription": "أضف ما يعجبك وسيظهر هنا.",
-    "continue": "متابعة التسوق",
-    "clear": "إفراغ السلة",
-    "remove": "إزالة {name}",
-    "increase": "زيادة الكمية",
-    "decrease": "تقليل الكمية",
-    "summary": "ملخص الطلب",
-    "subtotal": "المجموع الفرعي",
-    "shipping": "الشحن",
-    "free": "مجاني",
-    "total": "الإجمالي",
-    "checkout": "إتمام الشراء",
-    "freeShippingLeft": "أضف {amount} للحصول على شحن مجاني",
-    "freeShippingReached": "حصلت على الشحن المجاني"
+    "title": "Your cart",
+    "itemsCount": "{count, plural, one {# item} other {# items}}",
+    "open": "Open cart, {count, plural, one {# item} other {# items}}",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Add something you love and it will appear here.",
+    "loadError": "We couldn't load your cart. Please try again.",
+    "retry": "Try again",
+    "addSuccess": "Item added to your cart.",
+    "quantityUpdated": "Cart quantity updated.",
+    "itemRemoved": "Item removed from your cart.",
+    "cartCleared": "Your cart has been cleared.",
+    "updateError": "We couldn't update your cart. Please try again.",
+    "continue": "Continue shopping",
+    "clear": "Clear cart",
+    "remove": "Remove {name}",
+    "increase": "Increase quantity",
+    "decrease": "Decrease quantity",
+    "summary": "Order summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "free": "Free",
+    "total": "Total",
+    "checkout": "Checkout",
+    "freeShippingLeft": "Add {amount} for free shipping",
+    "freeShippingReached": "You've unlocked free shipping"
   },
 
   "favourites": {
@@ -196,6 +223,12 @@
     "emptyTitle": "No favourites yet",
     "emptyDescription": "Tap the heart on any product to save it here.",
     "browse": "Browse products",
-    "clear": "Clear all"
+    "clear": "Clear all",
+    "loadError": "We couldn't load your favourites. Please try again.",
+    "retry": "Try again",
+    "addSuccess": "Added to your favourites.",
+    "removeSuccess": "Removed from your favourites.",
+    "clearSuccess": "Your favourites have been cleared.",
+    "updateError": "We couldn't update your favourites. Please try again."
   }
 }

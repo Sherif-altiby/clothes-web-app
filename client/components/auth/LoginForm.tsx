@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
@@ -9,6 +9,8 @@ import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
+import { CART_QUERY_KEY } from "@/lib/cart-context";
+import { FAVORITES_QUERY_KEY } from "@/lib/favourites-context";
 import { loginResponseSchema, loginSchema, type LoginInput } from "@/lib/validations/login";
 
 interface ApiResponse<T> {
@@ -20,6 +22,7 @@ export function LoginForm() {
   const t = useTranslations("auth.login");
   const locale = useLocale();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,6 +40,9 @@ export function LoginForm() {
       return parsed.data.user;
     },
     onSuccess: (user) => {
+      queryClient.setQueryData(["auth", "me"], user);
+      void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: FAVORITES_QUERY_KEY });
       toast.success(t("success"));
       router.replace(user.role === "USER" ? `/${locale}/user` : `/${locale}/admin`);
     },

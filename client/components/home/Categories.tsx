@@ -61,7 +61,7 @@ export function Categories() {
                     {categories.map((category) => (
                         <Link
                             key={category.id}
-                            href={`/${locale}/user/category/${category.id}`}
+                            href={`user/category/${category.id}`}
                             className="group relative aspect-[3/4] overflow-hidden rounded-2xl border border-border/50 bg-muted/30 transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.15)]"
                         >
                             <Image

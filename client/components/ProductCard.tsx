@@ -5,6 +5,7 @@ import { Check, Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale } from "next-intl";
 import { useCart } from "@/lib/cart-context";
 import { useFavourites } from "@/lib/favourites-context";
 
@@ -39,6 +40,7 @@ export function ProductCard({
   onToggleFavourite,
   category,
 }: ProductCardProps) {
+  const locale = useLocale();
   const [justAdded, setJustAdded] = useState(false);
   const { addItem } = useCart();
   const { isFavourite: isSaved, toggleFavourite } = useFavourites();
@@ -59,7 +61,7 @@ export function ProductCard({
   const handleToggleFavourite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const newFav = toggleFavourite({
+    void toggleFavourite({
       id,
       title,
       description,
@@ -70,30 +72,25 @@ export function ProductCard({
       rating,
       reviewsCount,
       category,
+    }).then((newFav) => {
+      if (newFav !== null && onToggleFavourite) onToggleFavourite(id, newFav);
     });
-    if (onToggleFavourite) onToggleFavourite(id, newFav);
   };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault(); // the card is a <Link>, so don't navigate
     e.stopPropagation();
 
-    addItem({
-      id,
-      title,
-      price: displayPrice, // final price after discount
-      originalPrice: displayOriginal,
-      imageUrl,
-      category,
+    void addItem(id).then((added) => {
+      if (!added) return;
+      setJustAdded(true);
+      if (onAddToCart) onAddToCart(id);
     });
-
-    setJustAdded(true);
-    if (onAddToCart) onAddToCart(id);
   };
 
   return (
     <Link
-      href={`${category}/${id}`}
+      href={`/${locale}/${category}/${id}`}
       className="group relative w-full max-w-sm rounded-3xl border border-border/50 bg-card/40 p-3 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:hover:shadow-[0_20px_40px_-15px_rgba(255,255,255,0.05)] overflow-hidden"
     >
       {/* Discount Badge */}

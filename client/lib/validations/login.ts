@@ -16,13 +16,21 @@ export const loginSchema = z.object({
     .regex(/[\W_]/, "passwordSpecial"),
 });
 
+export const authUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().email(),
+  role: z.enum(["ADMIN", "MODERATOR", "USER"]),
+  avatar: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  address: z.string().nullable().optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
 export const loginResponseSchema = z.object({
-  user: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string().email(),
-    role: z.enum(["ADMIN", "MODERATOR", "USER"]),
-  }),
+  user: authUserSchema,
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+export type AuthUser = z.infer<typeof authUserSchema>;

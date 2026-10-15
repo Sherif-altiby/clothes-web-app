@@ -1,15 +1,13 @@
 import { Categories } from "@/components/home/Categories";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
-import { Footer } from "@/components/home/Footer";
 import { HeroSlider } from "@/components/home/HeroSlider";
-import { PerksStrip } from "@/components/home/PerksStrip";
 
  
 
 export default function HomePage() {
     return (
         <main>
-            <div className="container mx-auto px-4 pt-6">
+            <div className="-mx-4 w-[calc(100%+2rem)] md:-mx-8 md:w-[calc(100%+4rem)] xl:-mx-16 xl:w-[calc(100%+8rem)]">
                 <HeroSlider />
             </div>
             {/* <PerksStrip />/ */}
