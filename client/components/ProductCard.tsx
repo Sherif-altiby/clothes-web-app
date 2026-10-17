@@ -18,6 +18,10 @@ export interface ProductCardProps {
   discountPercentage?: number;
   counts?: number;
   imageUrl: string;
+  reviewSummary?: {
+    averageRating: number;
+    totalReviews: number;
+  };
   rating?: number;
   reviewsCount?: number;
   onAddToCart?: (id: string) => void;
@@ -34,8 +38,9 @@ export function ProductCard({
   discountPercentage,
   counts,
   imageUrl,
-  rating = 4.5,
-  reviewsCount = 128,
+  reviewSummary,
+  rating,
+  reviewsCount,
   onAddToCart,
   onToggleFavourite,
   category,
@@ -45,6 +50,8 @@ export function ProductCard({
   const { addItem } = useCart();
   const { isFavourite: isSaved, toggleFavourite } = useFavourites();
   const isFavourite = isSaved(id);
+  const displayRating = reviewSummary?.averageRating ?? rating ?? 0;
+  const displayReviewsCount = reviewSummary?.totalReviews ?? reviewsCount ?? 0;
 
   const displayPrice = discountPercentage
     ? price - (price * discountPercentage) / 100
@@ -69,8 +76,8 @@ export function ProductCard({
       originalPrice,
       discountPercentage,
       imageUrl,
-      rating,
-      reviewsCount,
+      rating: displayRating,
+      reviewsCount: displayReviewsCount,
       category,
     }).then((newFav) => {
       if (newFav !== null && onToggleFavourite) onToggleFavourite(id, newFav);
@@ -150,7 +157,7 @@ export function ProductCard({
               <Star
                 key={i}
                 className={`h-3 w-3 ${
-                  i < Math.floor(rating)
+                  i < Math.floor(displayRating)
                     ? "fill-current"
                     : "fill-transparent text-muted-foreground/30"
                 }`}
@@ -158,7 +165,7 @@ export function ProductCard({
             ))}
           </div>
           <span className="text-xs font-medium text-muted-foreground">
-            ({reviewsCount})
+            ({displayReviewsCount})
           </span>
         </div>
 

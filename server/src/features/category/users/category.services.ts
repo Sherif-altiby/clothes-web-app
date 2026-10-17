@@ -3,7 +3,12 @@ import { Lang } from "../../../shared/middlewares/lang.middleware";
 import { localizeCategory } from "../../../shared/utils/localize";
 
 export const getAllCategoriesService = async (lang: Lang) => {
-  const categories = await prisma.category.findMany();
+  const categories = await prisma.category.findMany({
+    include: { _count: { select: { products: true } } },
+  });
 
-  return categories.map((c) => localizeCategory(c, lang));
+  return categories.map((category) => ({
+    ...category,
+    title: localizeCategory(category, lang).title,
+  }));
 };

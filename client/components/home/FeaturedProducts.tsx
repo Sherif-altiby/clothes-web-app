@@ -18,10 +18,18 @@ interface Product {
     counts: number;
     images: string[];
     categoryId: string;
+    reviewSummary: {
+        averageRating: number;
+        totalReviews: number;
+    };
 }
 
 interface ProductsResponse {
     products: Product[];
+}
+
+interface Category {
+    id: string;
 }
 
 interface ApiResponse<T> {
@@ -32,6 +40,16 @@ interface ApiResponse<T> {
 export function FeaturedProducts() {
     const t = useTranslations("home.featured");
     const locale = useLocale();
+    const { data: categories } = useQuery({
+        queryKey: ["categories", locale],
+        queryFn: async () => {
+            const response = await api.get<ApiResponse<Category[]>>("/user/categories", {
+                headers: { "Accept-Language": locale },
+            });
+
+            return response.data.data;
+        },
+    });
     const {
         data: products,
         isLoading,
@@ -60,9 +78,11 @@ export function FeaturedProducts() {
                     </h2>
                     <p className="text-sm text-muted-foreground">{t("subtitle")}</p>
                 </div>
-                <Button asChild variant="outline" className="h-10 shrink-0 rounded-xl font-semibold">
-                    <Link href={`user`}>{t("viewAll")}</Link>
-                </Button>
+                {categories?.[0] && (
+                    <Button asChild variant="outline" className="h-10 shrink-0 rounded-xl font-semibold">
+                        <Link href={`user/category/${categories[0].id}`}>{t("viewAll")}</Link>
+                    </Button>
+                )}
             </div>
 
             {isLoading ? (
@@ -89,6 +109,7 @@ export function FeaturedProducts() {
                             discountPercentage={product.discount ?? undefined}
                             counts={product.counts}
                             imageUrl={product.images[0]}
+                            reviewSummary={product.reviewSummary}
                             category={`user/category/${product.categoryId}`}
                         />
                     ))}

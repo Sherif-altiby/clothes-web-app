@@ -31,10 +31,15 @@ export const updateCategorySchema = z
             .trim()
             .min(1, "English title (titleEn) cannot be empty")
             .optional(),
+        image: z
+            .string({ error: "Image URL (image) must be a string" })
+            .trim()
+            .url("Image must be a valid URL")
+            .optional(),
     })
     .strict()
-    .refine((data) => data.titleAr !== undefined || data.titleEn !== undefined, {
-        message: "At least one of titleAr or titleEn is required",
+    .refine((data) => Object.keys(data).length > 0, {
+        message: "At least one category field is required",
     });
 
 export const formatCategoryValidationError = (error: ZodError, allowedFields: string[]) =>

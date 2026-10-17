@@ -1,42 +1,32 @@
 import { z } from "zod";
 
 export const createProductSchema = z.object({
-    title: z
-        .string()
-        .min(3, "Title must be at least 3 characters")
-        .max(100, "Title is too long"),
+    titleAr: z.string().trim().min(1).max(100),
+    titleEn: z.string().trim().min(1).max(100),
+    descriptionAr: z.string().trim().min(1).max(5000),
+    descriptionEn: z.string().trim().min(1).max(5000),
+    baseSalary: z.number().finite().positive(),
+    profit: z.number().finite().min(0),
+    discount: z.number().finite().min(0).max(100).default(0),
+    images: z.array(z.string().url()).min(1).max(10),
+    counts: z.number().int().positive().default(1),
+    categoryId: z.string().min(1),
+}).strict();
 
-    description: z
-        .string()
-        .min(10, "Description must be at least 10 characters"),
-
-    baseSalary: z
-        .number()
-        .positive("Base salary must be greater than 0"),
-
-    profit: z
-        .number()
-        .min(0, "Profit cannot be negative"),
-
-    discount: z
-        .number()
-        .min(0, "Discount cannot be negative")
-        .max(100, "Discount cannot exceed 100")
-        .optional(),
-
-    images: z
-        .array(
-            z.string().url("Each image must be a valid URL")
-        )
-        .min(1, "At least one image is required"),
-
-    counts: z
-        .number()
-        .int("Counts must be an integer")
-        .positive("Counts must be greater than 0")
-        .optional(),
-
-    categoryId: z
-        .string()
-        .min(1, "Category ID is required"),
-});
+export const updateProductSchema = z
+    .object({
+        titleAr: z.string().trim().min(1).max(100).optional(),
+        titleEn: z.string().trim().min(1).max(100).optional(),
+        descriptionAr: z.string().trim().min(1).max(5000).optional(),
+        descriptionEn: z.string().trim().min(1).max(5000).optional(),
+        baseSalary: z.number().finite().positive().optional(),
+        profit: z.number().finite().min(0).optional(),
+        discount: z.number().finite().min(0).max(100).nullable().optional(),
+        images: z.array(z.string().url()).min(1).max(10).optional(),
+        counts: z.number().int().min(0).optional(),
+        categoryId: z.string().min(1).optional(),
+    })
+    .strict()
+    .refine((data) => Object.keys(data).length > 0, {
+        message: "At least one product field must be provided",
+    });

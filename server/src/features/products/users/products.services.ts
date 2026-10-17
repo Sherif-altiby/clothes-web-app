@@ -14,6 +14,17 @@ type GetProductsOptions = {
     categoryId?: string;
 };
 
+const productReviewInclude = {
+    reviews: {
+        orderBy: { createdAt: "desc" },
+        include: {
+            user: {
+                select: { id: true, name: true, avatar: true },
+            },
+        },
+    },
+} satisfies Prisma.ProductInclude;
+
 export const getProducts = async ({
     lang,
     page = 1,
@@ -49,6 +60,16 @@ export const getProducts = async ({
         prisma.product.count({ where }),
     ]);
 
+    const reviewStats = products.length
+        ? await prisma.review.groupBy({
+              by: ["productId"],
+              where: { productId: { in: products.map((product) => product.id) } },
+              _avg: { rating: true },
+              _count: { _all: true },
+          })
+        : [];
+    const statsByProductId = new Map(reviewStats.map((stats) => [stats.productId, stats]));
+
     return {
         pagination: {
             totalItems,
@@ -56,7 +77,20 @@ export const getProducts = async ({
             limit,
             totalPages: Math.ceil(totalItems / limit),
         },
-        products: products.map((p) => localizeProduct(p, lang)),
+        products: products.map((product) => {
+            const stats = statsByProductId.get(product.id);
+
+            return {
+                ...localizeProduct(product, lang),
+                images: product.images.slice(0, 1),
+                reviewSummary: {
+                    averageRating: stats?._avg.rating
+                        ? Math.round(stats._avg.rating * 10) / 10
+                        : 0,
+                    totalReviews: stats?._count._all ?? 0,
+                },
+            };
+        }),
     };
 };
 
@@ -74,6 +108,7 @@ export const getProductById = async (productId: string, lang: Lang) => {
                     titleEn: true,
                 },
             },
+            ...productReviewInclude,
         },
     });
 

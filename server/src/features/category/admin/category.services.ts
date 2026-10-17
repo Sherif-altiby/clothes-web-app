@@ -20,8 +20,7 @@ export const createCategoryService = async ({ titleAr, titleEn, image }: CreateC
 
 export const updateCategoryService = async (
   id: string,
-  titleAr?: string,
-  titleEn?: string
+  data: { titleAr?: string; titleEn?: string; image?: string }
 ) => {
   const existingCategory = await prisma.category.findUnique({
     where: { id },
@@ -34,8 +33,8 @@ export const updateCategoryService = async (
   // Only check the fields that are actually changing
   const conditions: { titleAr?: string; titleEn?: string }[] = [];
 
-  if (titleAr && titleAr !== existingCategory.titleAr) conditions.push({ titleAr });
-  if (titleEn && titleEn !== existingCategory.titleEn) conditions.push({ titleEn });
+  if (data.titleAr && data.titleAr !== existingCategory.titleAr) conditions.push({ titleAr: data.titleAr });
+  if (data.titleEn && data.titleEn !== existingCategory.titleEn) conditions.push({ titleEn: data.titleEn });
 
   if (conditions.length > 0) {
     const titleExists = await prisma.category.findFirst({
@@ -52,10 +51,7 @@ export const updateCategoryService = async (
 
   const category = await prisma.category.update({
     where: { id },
-    data: {
-      ...(titleAr && { titleAr }),
-      ...(titleEn && { titleEn }),
-    },
+    data,
   });
 
   return category;
@@ -68,6 +64,11 @@ export const deleteCategoryService = async (id: string) => {
 
   if (!existingCategory) {
     throw new ApiError(404, "Category not found");
+  }
+
+  const productCount = await prisma.product.count({ where: { categoryId: id } });
+  if (productCount > 0) {
+    throw new ApiError(409, "Category cannot be deleted while it contains products");
   }
 
   await prisma.category.delete({

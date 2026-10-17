@@ -20,6 +20,10 @@ interface ApiProduct {
   counts: number;
   images: string[];
   categoryId: string;
+  reviewSummary: {
+    averageRating: number;
+    totalReviews: number;
+  };
 }
 
 interface ProductsResponse {
@@ -128,6 +132,7 @@ export function CategoryProducts({ categoryId }: CategoryProductsProps) {
                     discountPercentage={product.discount ?? undefined}
                     counts={product.counts}
                     imageUrl={product.images[0]}
+                    reviewSummary={product.reviewSummary}
                     category={`user/category/${selectedCategoryId}`}
                   />
                 ))}

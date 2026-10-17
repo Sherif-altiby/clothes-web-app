@@ -78,6 +78,41 @@ const categoriesData = [
     { key: "shoes", titleAr: "أحذية", titleEn: "Shoes" },
     { key: "accessories", titleAr: "إكسسوارات", titleEn: "Accessories" },
 ];
+const heroSlidesData = [
+    {
+        titleAr: "طبقات أنيقة للموسم الجديد",
+        titleEn: "Layers for the new season",
+        subtitleAr: "جاكيتات مصممة بعناية وتريكو ناعم وأساسيات يومية.",
+        subtitleEn: "Structured jackets, soft knits and everyday essentials.",
+        ctaAr: "تسوّق المجموعة",
+        ctaEn: "Shop the collection",
+        image: "https://picsum.photos/seed/hero-new-season/1600/900",
+        href: "/user",
+        order: 0,
+    },
+    {
+        titleAr: "الجينز بتصميم جديد",
+        titleEn: "Denim, redone",
+        subtitleAr: "قصّات مريحة وألوان كلاسيكية تناسب كل يوم.",
+        subtitleEn: "Relaxed fits and classic washes for every day.",
+        ctaAr: "تسوّق الجينز",
+        ctaEn: "Shop denim",
+        image: "https://picsum.photos/seed/hero-denim/1600/900",
+        href: "/user",
+        order: 1,
+    },
+    {
+        titleAr: "تحرّك براحة",
+        titleEn: "Move in comfort",
+        subtitleAr: "ملابس رياضية خفيفة للتمارين والاستخدام اليومي.",
+        subtitleEn: "Lightweight performance wear for training and every day.",
+        ctaAr: "تسوّق الملابس الرياضية",
+        ctaEn: "Shop activewear",
+        image: "https://picsum.photos/seed/hero-activewear/1600/900",
+        href: "/user",
+        order: 2,
+    },
+];
 const productsData = [
     {
         key: "cotton-shirt",
@@ -337,6 +372,7 @@ async function clearDatabase() {
     await prisma.favorite.deleteMany();
     await prisma.cartItem.deleteMany();
     await prisma.cart.deleteMany();
+    await prisma.heroSlide.deleteMany();
     await prisma.product.deleteMany();
     await prisma.category.deleteMany();
     await prisma.user.deleteMany();
@@ -371,6 +407,11 @@ async function main() {
         });
     }
     console.log(`✔ Categories: ${categoriesData.length}`);
+    /* ----------------------------- Hero slides ------------------------------ */
+    for (const slide of heroSlidesData) {
+        await prisma.heroSlide.create({ data: slide });
+    }
+    console.log(`✔ Hero slides: ${heroSlidesData.length}`);
     /* ------------------------------ Products -------------------------------- */
     const productsByKey = {};
     for (const p of productsData) {

@@ -4,13 +4,15 @@ import {
     uploadMultipleController,
     uploadSingleController,
 } from "./upload.controllers";
-import { authMiddleware } from "../../shared/middlewares/auth.middleware";
 import { uploadMultiple, uploadSingle } from "./upload.middleware";
+import { authMiddleware } from "../../shared/middlewares/auth.middleware";
+import { requireAdminMiddleware } from "../../shared/middlewares/requireAdmin.middleware";
 
 const router = Router();
 
-router.post("/single", authMiddleware, uploadSingle("image"), uploadSingleController);
-router.post("/multiple", authMiddleware, uploadMultiple("images", 10), uploadMultipleController);
-router.delete("/", authMiddleware, deleteImageController);
+router.use(authMiddleware, requireAdminMiddleware);
+router.post("/single", uploadSingle("image"), uploadSingleController);
+router.post("/multiple", uploadMultiple("images", 10), uploadMultipleController);
+router.delete("/", deleteImageController);
 
 export default router;

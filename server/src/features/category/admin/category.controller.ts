@@ -35,12 +35,11 @@ export const updateCategoryController = asyncHandler(async (req: Request, res: R
     if (!parsed.success) {
         throw new ApiError(
             400,
-            formatCategoryValidationError(parsed.error, ["titleAr", "titleEn"])
+            formatCategoryValidationError(parsed.error, ["titleAr", "titleEn", "image"])
         );
     }
 
-    const { titleAr, titleEn } = parsed.data;
-    const updatedCategory = await updateCategoryService(id, titleAr, titleEn);
+    const updatedCategory = await updateCategoryService(id, parsed.data);
 
     res.status(200).json({ success: true, data: updatedCategory });
 });
