@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useId, type ComponentProps, type ReactNode } from "react";
@@ -9,15 +8,10 @@ import { cn } from "@/lib/utils";
 
 interface AdminFieldInputProps
   extends Omit<ComponentProps<typeof Input>, "prefix"> {
-  /** Content displayed at the inline-start edge. */
   prefix?: ReactNode;
-  /** Content displayed at the inline-end edge. */
   suffix?: ReactNode;
-  /** Marks the input invalid. Implied when error is provided. */
   invalid?: boolean;
-  /** Validation message displayed below the input. */
   error?: string;
-  /** Helper text displayed when there is no error. */
   hint?: string;
 }
 
@@ -55,10 +49,7 @@ export function AdminFieldInput({
     <div className="w-full min-w-0 space-y-2">
       <div className="group relative">
         {prefix && (
-          <span
-            aria-hidden="true"
-            className={cn(adornment, "start-3.5")}
-          >
+          <span aria-hidden="true" className={cn(adornment, "start-3.5")}>
             {prefix}
           </span>
         )}
@@ -94,10 +85,7 @@ export function AdminFieldInput({
         />
 
         {suffix && (
-          <span
-            aria-hidden="true"
-            className={cn(adornment, "end-3.5")}
-          >
+          <span aria-hidden="true" className={cn(adornment, "end-3.5")}>
             {suffix}
           </span>
         )}
@@ -114,15 +102,9 @@ export function AdminFieldInput({
           )}
         >
           {error ? (
-            <CircleAlert
-              className="mt-0.5 size-3.5 shrink-0"
-              aria-hidden="true"
-            />
+            <CircleAlert className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           ) : (
-            <CheckCircle2
-              className="mt-0.5 size-3.5 shrink-0 opacity-60"
-              aria-hidden="true"
-            />
+            <CheckCircle2 className="mt-0.5 size-3.5 shrink-0 opacity-60" aria-hidden="true" />
           )}
 
           <p className="min-w-0 break-words">{message}</p>

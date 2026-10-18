@@ -47,6 +47,36 @@ export const getReviewsService = async (productId: string, page: number = 1, lim
     };
 };
 
+export const getAllReviewsService = async (lang: Lang, page: number = 1, limit: number = 10) => {
+    const where: Prisma.ReviewWhereInput = {};
+
+    const [reviews, totalItems] = await Promise.all([
+        prisma.review.findMany({
+            where,
+            skip: (page - 1) * limit,
+            take: limit,
+            orderBy: { createdAt: "desc" },
+            include: {
+                user: { select: userSelect },
+                product: { select: { id: true, titleAr: true, titleEn: true } },
+            },
+        }),
+        prisma.review.count({ where }),
+    ]);
+
+    return {
+        pagination: pagination(totalItems, page, limit),
+        reviews: reviews.map(({ user, product, ...review }) => ({
+            ...review,
+            user,
+            product: {
+                id: product.id,
+                title: lang === "ar" ? product.titleAr || product.titleEn : product.titleEn || product.titleAr,
+            },
+        })),
+    };
+};
+
 // Reviews written by the current user (with the product localized)
 export const getMyReviewsService = async (
     userId: string,

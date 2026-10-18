@@ -5,6 +5,7 @@ import { ApiError } from "../../shared/utils/ApiError";
 import {
     createReviewService,
     deleteReviewService,
+    getAllReviewsService,
     getMyReviewsService,
     getReviewsService,
     updateReviewService,
@@ -40,6 +41,13 @@ const parseComment = (value: unknown): string | null => {
 const parsePage = (req: Request) => ({
     page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
     limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
+});
+
+export const getAllReviewsController = asyncHandler(async (req: Request, res: Response) => {
+    const { page, limit } = parsePage(req);
+    const result = await getAllReviewsService(req.lang, page, limit);
+
+    res.status(200).json({ success: true, data: result });
 });
 
 export const getReviewsController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

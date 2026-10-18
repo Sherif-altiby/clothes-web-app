@@ -2,15 +2,14 @@
 
 import Image from "next/image";
 import { Dialog } from "radix-ui";
-import {
-  AlertCircle,
-  Check,
-  ImagePlus,
-  LoaderCircle,
-  Receipt,
-  Tag,
-  Trash2,
-  X,
+import { 
+  AlertCircle, 
+  ImagePlus, 
+  LoaderCircle, 
+  Plus, 
+  X, 
+  Sparkles, 
+  Layers,
 } from "lucide-react";
 import {
   useEffect,
@@ -21,15 +20,19 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { MAX_PRODUCT_IMAGES, productFormSchema } from "@/lib/validations/admin-product";
-import { AdminFieldInput } from "./AdminFieldInput";
+import {
+  CountInput,
+  DescriptionInput,
+  MoneyInput,
+  PercentInput,
+  TitleInput,
+} from "@/components/shared/AdminFormInputs";
 import { SharedSelect } from "@/components/shared/SharedSelect";
 import {
   getCloudinaryPublicId,
@@ -40,6 +43,8 @@ import {
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const TITLE_MAX = 100;
+const DESCRIPTION_MAX = 5000;
 
 interface ProductEditorDialogProps {
   open: boolean;
@@ -47,40 +52,7 @@ interface ProductEditorDialogProps {
   product: AdminProduct | null;
   categories: AdminCategory[];
   isSaving: boolean;
-  labels: {
-    title: string;
-    description: string;
-    submit: string;
-    removeImage: string;
-    close: string;
-    titleEn: string;
-    titleAr: string;
-    descriptionEn: string;
-    descriptionAr: string;
-    baseSalary: string;
-    profit: string;
-    discount: string;
-    counts: string;
-    category: string;
-    images: string;
-    addImages: string;
-    cancel: string;
-    save: string;
-    saving: string;
-    invalidForm: string;
-    saveError: string;
-    invalidImageType: string;
-    fileTooLarge: string;
-    selectCategory: string;
-    noCategories: string;
-    tooManyImages: string;
-    sectionDetails: string;
-    sectionPricing: string;
-    sectionImages: string;
-    finalPrice: string;
-    mainImage: string;
-    dropImages: string;
-  };
+  labels: Record<string, string>;
   onOpenChange: (open: boolean) => void;
   onSave: (
     data: ProductFormData,
@@ -113,6 +85,8 @@ const getInitialFields = (product: AdminProduct | null): FormFields => ({
   categoryId: product?.categoryId ?? "",
 });
 
+const money = (value: number) => value.toFixed(2);
+
 export function ProductEditorDialog({
   open,
   isCreate,
@@ -123,11 +97,12 @@ export function ProductEditorDialog({
   onOpenChange,
   onSave,
 }: ProductEditorDialogProps) {
-  const fileInputId = useId();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [fields, setFields] = useState<FormFields>(() => getInitialFields(product));
   const [images, setImages] = useState<string[]>(product?.images ?? []);
   const [newFiles, setNewFiles] = useState<Array<{ file: File; preview: string }>>([]);
   const [error, setError] = useState("");
+  const [invalidKeys, setInvalidKeys] = useState<Set<string>>(new Set());
   const [isDragging, setIsDragging] = useState(false);
   const previewUrls = useRef(new Set<string>());
 
@@ -141,6 +116,7 @@ export function ProductEditorDialog({
 
   const totalImages = images.length + newFiles.length;
   const imagesFull = totalImages >= MAX_PRODUCT_IMAGES;
+  const dropDisabled = imagesFull || isSaving;
 
   const pricePreview = useMemo(() => {
     if (fields.baseSalary === "" || fields.profit === "") return null;
@@ -150,13 +126,23 @@ export function ProductEditorDialog({
     if (![base, profit, discount].every(Number.isFinite)) return null;
     if (base <= 0 || profit < 0 || discount < 0 || discount > 100) return null;
     const original = base + profit;
-    return { original, final: original * (1 - discount / 100), discount };
+    const final = original * (1 - discount / 100);
+    return { base, profit, discount, original, final, saved: original - final };
   }, [fields.baseSalary, fields.profit, fields.discount]);
 
-  const selectedCategory = categories.find((c) => c.id === fields.categoryId);
+  const isInvalid = (key: string) => invalidKeys.has(key);
+
+  const clearInvalid = (key: string) =>
+    setInvalidKeys((current) => {
+      if (!current.has(key)) return current;
+      const next = new Set(current);
+      next.delete(key);
+      return next;
+    });
 
   const updateField = (field: keyof FormFields, value: string) => {
     setFields((current) => ({ ...current, [field]: value }));
+    clearInvalid(field);
     setError("");
   };
 
@@ -185,6 +171,7 @@ export function ProductEditorDialog({
       return { file, preview };
     });
     setNewFiles((current) => [...current, ...additions]);
+    clearInvalid("imageCount");
     setError("");
   };
 
@@ -208,10 +195,12 @@ export function ProductEditorDialog({
     });
 
     if (!parsed.success) {
+      setInvalidKeys(new Set(parsed.error.issues.map((issue) => String(issue.path[0]))));
       setError(labels.invalidForm);
       return;
     }
     if (isCreate && parsed.data.counts < 1) {
+      setInvalidKeys(new Set(["counts"]));
       setError(labels.invalidForm);
       return;
     }
@@ -244,376 +233,299 @@ export function ProductEditorDialog({
 
   if (!open || (!product && !isCreate)) return null;
 
+  const tiles = [
+    ...images.map((url, index) => ({
+      key: `${url}-${index}`,
+      src: url,
+      alt: "",
+      unoptimized: false,
+      removeLabel: `${labels.removeImage}: ${index + 1}`,
+      onRemove: () => setImages((current) => current.filter((_, itemIndex) => itemIndex !== index)),
+    })),
+    ...newFiles.map(({ file, preview }) => ({
+      key: preview,
+      src: preview,
+      alt: file.name,
+      unoptimized: true,
+      removeLabel: `${labels.removeImage}: ${file.name}`,
+      onRemove: () => removeNewFile(preview),
+    })),
+  ];
+
+  const dropHandlers = {
+    onDragOver: (event: React.DragEvent) => {
+      event.preventDefault();
+      if (!dropDisabled) setIsDragging(true);
+    },
+    onDragLeave: () => setIsDragging(false),
+    onDrop: (event: React.DragEvent) => {
+      event.preventDefault();
+      setIsDragging(false);
+      if (!dropDisabled) addFiles(event.dataTransfer.files);
+    },
+  };
+
   return (
     <Dialog.Root open={open} onOpenChange={(nextOpen) => !isSaving && onOpenChange(nextOpen)}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 flex max-h-[92vh] w-[min(56rem,calc(100vw-1.5rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-border bg-background shadow-2xl outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
-          {/* Header — right aligned, with live summary */}
-          <div className="border-b border-border bg-muted/30 px-5 py-4 sm:px-7 sm:py-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 space-y-1 text-start">
-                <Dialog.Title className="truncate text-xl font-bold leading-tight">
-                  {labels.title}
-                </Dialog.Title>
-                <Dialog.Description className="text-sm text-muted-foreground">
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40 backdrop-blur-md data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+        
+        <Dialog.Content 
+          dir="rtl" // <-- Forces RTL at the dialog level
+          className="fixed left-1/2 top-1/2 z-50 flex h-[90vh] max-h-[850px] w-[min(48rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-[24px] border border-border/50 bg-background shadow-2xl outline-none data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95">
+          
+          <div className="relative flex h-full flex-col">
+            {/* --- Premium Header --- */}
+            <div className="flex shrink-0 items-center justify-between border-b border-border/40 bg-background/60 px-6 py-5 backdrop-blur-xl">
+              <div className="flex flex-col gap-1 text-right">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    {isCreate ? <Sparkles className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
+                  </div>
+                  <Dialog.Title className="text-xl font-bold tracking-tight">
+                    {labels.title}
+                  </Dialog.Title>
+                </div>
+                <Dialog.Description className="text-sm text-muted-foreground mr-11">
                   {labels.description}
                 </Dialog.Description>
               </div>
+              
               <Dialog.Close asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  disabled={isSaving}
-                  aria-label={labels.close}
-                  className="-me-2 shrink-0"
-                >
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted" disabled={isSaving}>
                   <X className="h-4 w-4" />
                 </Button>
               </Dialog.Close>
             </div>
 
-            {/* Live summary chips */}
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-start">
-              {selectedCategory ? (
-                <Badge variant="outline" className="gap-1">
-                  <Tag className="h-3 w-3" />
-                  {selectedCategory.title}
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-muted-foreground">
-                  {labels.selectCategory}
-                </Badge>
-              )}
-              {pricePreview && (
-                <Badge variant="secondary" className="tabular-nums" dir="ltr">
-                  {pricePreview.final.toFixed(2)}
-                </Badge>
-              )}
-              <Badge variant="secondary" className="tabular-nums" dir="ltr">
-                {totalImages}/{MAX_PRODUCT_IMAGES}
-              </Badge>
-            </div>
-          </div>
+            {/* --- Body: Single Column Rows --- */}
+            <form onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col overflow-hidden">
+              
+              <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain p-6 scrollbar-thin scrollbar-thumb-border">
+                <div className="space-y-8 pb-10">
+                  
+                  {/* Section 1: Details */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        {labels.sectionDetails}
+                      </h3>
+                      <Separator className="flex-1" />
+                    </div>
 
-          <form className="flex min-h-0 flex-1 flex-col" onSubmit={submit}>
-            <div className="flex-1 space-y-8 overflow-y-auto px-5 py-6 sm:px-7">
-              {/* Details */}
-              <section className="space-y-4 text-start">
-                <SectionHeading index={1}>{labels.sectionDetails}</SectionHeading>
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <Field
-                    label={labels.titleEn}
-                    required
-                    counter={{ current: fields.titleEn.length, max: 100 }}
-                  >
-                    {(id) => (
-                      <TitleInput
-                        id={id}
-                        dir="ltr"
-                        value={fields.titleEn}
-                        onChange={(value) => updateField("titleEn", value)}
-                      />
-                    )}
-                  </Field>
-                  <Field
-                    label={labels.titleAr}
-                    required
-                    counter={{ current: fields.titleAr.length, max: 100 }}
-                  >
-                    {(id) => (
-                      <TitleInput
-                        id={id}
-                        dir="rtl"
-                        value={fields.titleAr}
-                        onChange={(value) => updateField("titleAr", value)}
-                      />
-                    )}
-                  </Field>
-                  <Field
-                    label={labels.descriptionEn}
-                    required
-                    counter={{ current: fields.descriptionEn.length, max: 5000 }}
-                  >
-                    {(id) => (
-                      <DescriptionInput
-                        id={id}
-                        dir="ltr"
-                        value={fields.descriptionEn}
-                        onChange={(value) => updateField("descriptionEn", value)}
-                      />
-                    )}
-                  </Field>
-                  <Field
-                    label={labels.descriptionAr}
-                    required
-                    counter={{ current: fields.descriptionAr.length, max: 5000 }}
-                  >
-                    {(id) => (
-                      <DescriptionInput
-                        id={id}
-                        dir="rtl"
-                        value={fields.descriptionAr}
-                        onChange={(value) => updateField("descriptionAr", value)}
-                      />
-                    )}
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field
-                      label={labels.category}
-                      required
-                      description={labels.selectCategory}
-                      error={!categories.length ? labels.noCategories : undefined}
-                    >
+                    <div className="space-y-4">
+                      <LanguagePanel code="EN" dir="ltr">
+                        <Field label={labels.titleEn} required counter={{ current: fields.titleEn.length, max: TITLE_MAX }}>
+                          {(id) => <TitleInput id={id} dir="ltr" maxLength={TITLE_MAX} value={fields.titleEn} invalid={isInvalid("titleEn")} onChange={(value) => updateField("titleEn", value)} />}
+                        </Field>
+                        <Field label={labels.descriptionEn} required counter={{ current: fields.descriptionEn.length, max: DESCRIPTION_MAX }}>
+                          {(id) => <DescriptionInput id={id} dir="ltr" maxLength={DESCRIPTION_MAX} value={fields.descriptionEn} invalid={isInvalid("descriptionEn")} onChange={(value) => updateField("descriptionEn", value)} />}
+                        </Field>
+                      </LanguagePanel>
+
+                      <LanguagePanel code="AR" dir="rtl">
+                        <Field label={labels.titleAr} required counter={{ current: fields.titleAr.length, max: TITLE_MAX }}>
+                          {(id) => <TitleInput id={id} dir="rtl" maxLength={TITLE_MAX} value={fields.titleAr} invalid={isInvalid("titleAr")} onChange={(value) => updateField("titleAr", value)} />}
+                        </Field>
+                        <Field label={labels.descriptionAr} required counter={{ current: fields.descriptionAr.length, max: DESCRIPTION_MAX }}>
+                          {(id) => <DescriptionInput id={id} dir="rtl" maxLength={DESCRIPTION_MAX} value={fields.descriptionAr} invalid={isInvalid("descriptionAr")} onChange={(value) => updateField("descriptionAr", value)} />}
+                        </Field>
+                      </LanguagePanel>
+                    </div>
+
+                    <Field label={labels.category} required error={!categories.length ? labels.noCategories : undefined}>
                       {(id) => (
                         <SharedSelect
                           value={fields.categoryId}
                           onValueChange={(value) => updateField("categoryId", value)}
-                          options={categories.map((category) => ({
-                            value: category.id,
-                            label: category.title,
-                          }))}
+                          options={categories.map((category) => ({ value: category.id, label: category.title }))}
                           placeholder={labels.selectCategory}
                           id={id}
                           className={cn(
-                            "w-full bg-background text-start sm:max-w-sm",
-                            "focus:ring-2 focus:ring-primary/30 focus:ring-offset-0"
+                            "w-full bg-background text-right",
+                            isInvalid("categoryId") && "border-destructive ring-destructive/20"
                           )}
                         />
                       )}
                     </Field>
-                  </div>
-                </div>
-              </section>
+                  </section>
 
-              {/* Pricing & stock */}
-              <section className="space-y-4 text-start">
-                <SectionHeading index={2}>{labels.sectionPricing}</SectionHeading>
-                <div className="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <Field label={labels.baseSalary} required>
-                      {(id) => (
-                        <MoneyInput
-                          id={id}
-                          min="0.01"
-                          value={fields.baseSalary}
-                          onChange={(value) => updateField("baseSalary", value)}
-                        />
-                      )}
-                    </Field>
-                    <Field label={labels.profit} required description="Added to base salary">
-                      {(id) => (
-                        <MoneyInput
-                          id={id}
-                          min="0"
-                          value={fields.profit}
-                          onChange={(value) => updateField("profit", value)}
-                        />
-                      )}
-                    </Field>
-                    <Field label={labels.discount} required>
-                      {(id) => (
-                        <PercentInput
-                          id={id}
-                          value={fields.discount}
-                          onChange={(value) => updateField("discount", value)}
-                        />
-                      )}
-                    </Field>
-                    <Field label={labels.counts} required>
-                      {(id) => (
-                        <CountInput
-                          id={id}
-                          value={fields.counts}
-                          onChange={(value) => updateField("counts", value)}
-                        />
-                      )}
-                    </Field>
-                  </div>
+                  {/* Section 2: Pricing */}
+                  <section className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                        {labels.sectionPricing}
+                      </h3>
+                      <Separator className="flex-1" />
+                    </div>
 
-                  {pricePreview && (
-                    <div
-                      className="mt-4 flex items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3"
-                      aria-live="polite"
-                    >
-                      <span className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                        <Receipt className="h-4 w-4" aria-hidden="true" />
-                        {labels.finalPrice}
-                      </span>
-                      <div className="flex items-baseline gap-3">
-                        {pricePreview.discount > 0 && (
-                          <span className="text-sm tabular-nums text-muted-foreground line-through">
-                            {pricePreview.original.toFixed(2)}
+                    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                      <Field label={labels.baseSalary} required>
+                        {(id) => <MoneyInput id={id} min="0.01" value={fields.baseSalary} invalid={isInvalid("baseSalary")} onChange={(v) => updateField("baseSalary", v)} />}
+                      </Field>
+                      <Field label={labels.profit} required>
+                        {(id) => <MoneyInput id={id} min="0" value={fields.profit} invalid={isInvalid("profit")} onChange={(v) => updateField("profit", v)} />}
+                      </Field>
+                      <Field label={labels.discount} required>
+                        {(id) => <PercentInput id={id} value={fields.discount} invalid={isInvalid("discount")} onChange={(v) => updateField("discount", v)} />}
+                      </Field>
+                      <Field label={labels.counts} required>
+                        {(id) => <CountInput id={id} value={fields.counts} invalid={isInvalid("counts")} onChange={(v) => updateField("counts", v)} />}
+                      </Field>
+                    </div>
+
+                    {/* Horizontal Price Ledger */}
+                    <div className="rounded-2xl border border-border/50 bg-muted/30 p-4" aria-live="polite">
+                      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-base text-muted-foreground tabular-nums">
+                        <div className="flex items-center gap-1.5">
+                          <span>{labels.baseSalary}:</span>
+                          <span className="font-medium text-foreground">{pricePreview ? money(pricePreview.base) : "—"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span>{labels.profit}:</span>
+                          <span className="font-medium text-foreground">{pricePreview ? `+ ${money(pricePreview.profit)}` : "—"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <span>{labels.discount}:</span>
+                          <span className="font-medium text-foreground">{pricePreview && pricePreview.discount > 0 ? `− ${money(pricePreview.saved)} (${pricePreview.discount}%)` : "—"}</span>
+                        </div>
+                      </div>
+                      
+                      <Separator className="my-3" />
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-base font-semibold text-foreground">{labels.finalPrice}</span>
+                        <span className="flex items-baseline gap-2 tabular-nums">
+                          {pricePreview && pricePreview.discount > 0 && (
+                            <span className="text-sm text-muted-foreground line-through decoration-destructive/50">{money(pricePreview.original)}</span>
+                          )}
+                          <span className={cn("text-2xl font-bold tracking-tight", pricePreview ? "text-primary" : "text-muted-foreground/50")}>
+                            {pricePreview ? money(pricePreview.final) : "—"}
                           </span>
-                        )}
-                        <span className="text-lg font-bold tabular-nums text-foreground">
-                          {pricePreview.final.toFixed(2)}
                         </span>
                       </div>
                     </div>
+                  </section>
+
+                  {/* Section 3: Images */}
+                  <section className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 flex-1">
+                        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                          {labels.sectionImages}
+                        </h3>
+                        <Separator className="flex-1" />
+                      </div>
+                      <Badge variant={imagesFull ? "destructive" : "secondary"} className="ms-4">
+                        {totalImages} / {MAX_PRODUCT_IMAGES}
+                      </Badge>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept={ACCEPTED_TYPES.join(",")}
+                      multiple
+                      disabled={dropDisabled}
+                      aria-label={labels.addImages}
+                      tabIndex={-1}
+                      className="hidden"
+                      onChange={(event) => {
+                        addFiles(event.target.files);
+                        event.target.value = "";
+                      }}
+                    />
+
+                    {tiles.length === 0 ? (
+                      <button
+                        type="button"
+                        {...dropHandlers}
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={dropDisabled}
+                        className={cn(
+                          "group relative flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition-colors duration-200",
+                          isDragging ? "border-primary bg-primary/5" : "border-border/60 bg-muted/20 hover:border-primary/50 hover:bg-muted/40",
+                          "disabled:cursor-not-allowed disabled:opacity-50"
+                        )}
+                      >
+                        <div className={cn("flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-sm transition-colors duration-200", isDragging ? "text-primary ring-4 ring-primary/20" : "text-muted-foreground")}>
+                          <ImagePlus className="h-6 w-6" />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium text-foreground">{labels.dropImages}</p>
+                          <p className="text-xs text-muted-foreground">{labels.addImages}</p>
+                        </div>
+                      </button>
+                    ) : (
+                      <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 mt-4" {...dropHandlers}>
+                        {tiles.map((tile, index) => (
+                          <div key={tile.key} className={cn(index === 0 && "col-span-3 sm:col-span-5")}>
+                            <ImageTile {...tile} isMain={index === 0} mainLabel={labels.mainImage} disabled={isSaving} />
+                          </div>
+                        ))}
+                        {!imagesFull && (
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={dropDisabled}
+                            aria-label={labels.addImages}
+                            className={cn(
+                              "flex aspect-square cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border/60 bg-muted/20 text-muted-foreground transition-colors duration-200 hover:border-primary/50 hover:bg-muted/40 hover:text-foreground",
+                              isDragging && "border-primary bg-primary/5",
+                              "disabled:cursor-not-allowed disabled:opacity-50"
+                            )}
+                          >
+                            <Plus className="h-5 w-5" aria-hidden="true" />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </section>
+                </div>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 bg-background/80 p-4 px-6 backdrop-blur-xl">
+                <div className="min-w-0 flex-1 text-start">
+                  {error && (
+                    <div role="alert" className="flex items-center gap-1.5 text-sm text-destructive animate-in slide-in-from-right-2">
+                      <AlertCircle className="h-4 w-4 shrink-0" />
+                      <span className="font-medium">{error}</span>
+                    </div>
                   )}
                 </div>
-              </section>
-
-              {/* Images */}
-              <section className="space-y-4 text-start">
-                <SectionHeading
-                  index={3}
-                  trailing={
-                    <Badge
-                      variant={imagesFull ? "destructive" : "secondary"}
-                      className="tabular-nums"
-                      dir="ltr"
-                    >
-                      {totalImages}/{MAX_PRODUCT_IMAGES}
-                    </Badge>
-                  }
-                >
-                  {labels.sectionImages}
-                </SectionHeading>
-
-                <label
-                  htmlFor={fileInputId}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    if (!imagesFull && !isSaving) setIsDragging(true);
-                  }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    setIsDragging(false);
-                    if (!imagesFull && !isSaving) addFiles(event.dataTransfer.files);
-                  }}
-                  className={cn(
-                    "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-7 text-center transition-all focus-within:ring-2 focus-within:ring-ring/50",
-                    isDragging
-                      ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-                      : "border-border hover:border-primary/50 hover:bg-muted/40",
-                    (imagesFull || isSaving) && "pointer-events-none opacity-50"
-                  )}
-                >
-                  <span className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                    <ImagePlus className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span className="text-sm font-medium text-foreground">{labels.dropImages}</span>
-                  <span className="text-xs text-muted-foreground">{labels.addImages}</span>
-                  <input
-                    id={fileInputId}
-                    type="file"
-                    accept={ACCEPTED_TYPES.join(",")}
-                    multiple
-                    disabled={imagesFull || isSaving}
-                    className="sr-only"
-                    onChange={(event) => {
-                      addFiles(event.target.files);
-                      event.target.value = "";
-                    }}
-                  />
-                </label>
-
-                {totalImages > 0 && (
-                  <ul className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-                    {images.map((url, index) => (
-                      <li key={`${url}-${index}`}>
-                        <ImageTile
-                          src={url}
-                          alt=""
-                          isMain={index === 0}
-                          mainLabel={labels.mainImage}
-                          removeLabel={`${labels.removeImage}: ${index + 1}`}
-                          disabled={isSaving}
-                          onRemove={() =>
-                            setImages((current) =>
-                              current.filter((_, itemIndex) => itemIndex !== index)
-                            )
-                          }
-                        />
-                      </li>
-                    ))}
-                    {newFiles.map(({ file, preview }, index) => (
-                      <li key={preview}>
-                        <ImageTile
-                          src={preview}
-                          alt={file.name}
-                          unoptimized
-                          isMain={images.length === 0 && index === 0}
-                          mainLabel={labels.mainImage}
-                          removeLabel={`${labels.removeImage}: ${file.name}`}
-                          disabled={isSaving}
-                          onRemove={() => removeNewFile(preview)}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-
-              {error && (
-                <Alert variant="destructive" role="alert" className="text-start">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-
-            {/* Sticky footer — right aligned */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/30 px-5 py-4 sm:px-7">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {!error && totalImages > 0 && fields.categoryId ? (
-                  <>
-                    <Check className="h-3.5 w-3.5 text-emerald-600" aria-hidden="true" />
-                    <span>{labels.sectionDetails}</span>
-                  </>
-                ) : null}
+                <div className="flex items-center gap-3">
+                  <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={isSaving} className="rounded-xl text-base">
+                    {labels.cancel}
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={isSaving || !categories.length}
+                    className="min-w-[120px] rounded-xl text-base bg-gradient-to-b from-primary to-primary/90 text-primary-foreground shadow-md shadow-primary/20 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300"
+                  >
+                    {isSaving && <LoaderCircle className="h-4 w-4 animate-spin me-2" />}
+                    {isSaving ? labels.saving : isCreate ? labels.submit : labels.save}
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={isSaving}
-                  onClick={() => onOpenChange(false)}
-                >
-                  {labels.cancel}
-                </Button>
-                <Button
-                  type="submit"
-                  className="min-w-28 gap-2"
-                  disabled={isSaving || !categories.length}
-                >
-                  {isSaving && (
-                    <LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  )}
-                  {isSaving ? labels.saving : isCreate ? labels.submit : labels.save}
-                </Button>
-              </div>
-            </div>
-          </form>
+
+            </form>
+          </div>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
   );
 }
 
-/* ---------- Sub-components ---------- */
+/* ---------- Helper Components ---------- */
 
-function SectionHeading({
-  index,
-  children,
-  trailing,
-}: {
-  index: number;
-  children: ReactNode;
-  trailing?: ReactNode;
-}) {
+function LanguagePanel({ code, dir, children }: { code: string; dir: "ltr" | "rtl"; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary tabular-nums">
-        {index}
-      </span>
-      <h3 className="text-sm font-semibold text-foreground">{children}</h3>
-      <Separator className="flex-1" />
-      {trailing}
+    <div className="space-y-4 rounded-xl border border-border/60 bg-muted/10 p-4 transition-all duration-300 focus-within:border-border/80 focus-within:bg-background focus-within:shadow-sm">
+      <Badge variant="outline" dir={dir} className="font-semibold bg-background text-xs px-2.5 py-1">
+        {code}
+      </Badge>
+      {children}
     </div>
   );
 }
@@ -621,7 +533,6 @@ function SectionHeading({
 function Field({
   label,
   description,
-  hint,
   error,
   required,
   counter,
@@ -629,198 +540,36 @@ function Field({
 }: {
   label: string;
   description?: string;
-  hint?: string;
   error?: string;
   required?: boolean;
   counter?: { current: number; max: number };
   children: (id: string) => ReactNode;
 }) {
   const id = useId();
+  const showCounter = counter && counter.current >= counter.max * 0.8;
   return (
-    <div className="space-y-1.5 text-start">
+    <div className="space-y-2 group text-right">
       <div className="flex items-baseline justify-between gap-2">
-        <Label htmlFor={id} className="text-start text-sm font-medium">
+        <Label htmlFor={id} className="text-sm font-semibold text-muted-foreground group-focus-within:text-primary transition-colors">
           {label}
-          {required && (
-            <span className="ms-0.5 text-destructive" aria-hidden="true">
-              *
-            </span>
-          )}
+          {required && <span className="ms-0.5 text-destructive" aria-hidden="true">*</span>}
         </Label>
-        {counter && (
-          <span
-            className={cn(
-              "shrink-0 text-[11px] tabular-nums",
-              counter.current > counter.max
-                ? "text-destructive"
-                : "text-muted-foreground"
-            )}
-            dir="ltr"
-          >
+        {showCounter && counter && (
+          <span className={cn("shrink-0 text-xs tabular-nums", counter.current > counter.max ? "text-destructive" : "text-muted-foreground")} dir="ltr">
             {counter.current}/{counter.max}
           </span>
         )}
       </div>
       {children(id)}
       {error ? (
-        <p className="flex items-center gap-1 text-xs text-destructive">
-          <AlertCircle className="h-3 w-3 shrink-0" aria-hidden="true" />
+        <p className="flex items-center justify-end gap-1 text-xs text-destructive">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {error}
         </p>
       ) : description ? (
         <p className="text-xs text-muted-foreground">{description}</p>
-      ) : hint ? (
-        <p className="text-xs text-muted-foreground">{hint}</p>
       ) : null}
     </div>
-  );
-}
-
-function MoneyInput({
-  id,
-  min,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  min: string;
-  value: string;
-  onChange: (value: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <AdminFieldInput
-      id={id}
-      required
-      type="number"
-      inputMode="decimal"
-      min={min}
-      step="0.01"
-      dir="ltr"
-      className="text-start tabular-nums"
-      invalid={invalid}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  );
-}
-
-function PercentInput({
-  id,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <AdminFieldInput
-      id={id}
-      required
-      type="number"
-      inputMode="decimal"
-      min="0"
-      max="100"
-      step="0.01"
-      dir="ltr"
-      className="text-start tabular-nums"
-      suffix="%"
-      invalid={invalid}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  );
-}
-
-function CountInput({
-  id,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  value: string;
-  onChange: (value: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <AdminFieldInput
-      id={id}
-      required
-      type="number"
-      inputMode="numeric"
-      min="0"
-      step="1"
-      dir="ltr"
-      className="text-start tabular-nums"
-      invalid={invalid}
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  );
-}
-
-function TitleInput({
-  id,
-  dir,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  dir: "ltr" | "rtl";
-  value: string;
-  onChange: (value: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <AdminFieldInput
-      id={id}
-      required
-      maxLength={100}
-      dir={dir}
-      value={value}
-      invalid={invalid}
-      className="bg-background font-medium"
-      placeholder={dir === "rtl" ? "مثال: قميص قطني" : "e.g. Cotton shirt"}
-      onChange={(event) => onChange(event.target.value)}
-    />
-  );
-}
-
-function DescriptionInput({
-  id,
-  dir,
-  value,
-  onChange,
-  invalid,
-}: {
-  id: string;
-  dir: "ltr" | "rtl";
-  value: string;
-  onChange: (value: string) => void;
-  invalid?: boolean;
-}) {
-  return (
-    <Textarea
-      id={id}
-      required
-      maxLength={5000}
-      rows={4}
-      dir={dir}
-      value={value}
-      aria-invalid={invalid || undefined}
-      className={cn(
-        "resize-y bg-background transition-shadow",
-        "focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-0",
-        "aria-[invalid=true]:border-destructive aria-[invalid=true]:focus-visible:ring-destructive/30"
-      )}
-      onChange={(event) => onChange(event.target.value)}
-    />
   );
 }
 
@@ -836,7 +585,7 @@ function ImageTile({
 }: {
   src: string;
   alt: string;
-  unoptimized?: boolean;
+  unoptimized: boolean;
   isMain: boolean;
   mainLabel: string;
   removeLabel: string;
@@ -844,37 +593,11 @@ function ImageTile({
   onRemove: () => void;
 }) {
   return (
-    <div
-      className={cn(
-        "group relative aspect-square overflow-hidden rounded-xl border bg-muted transition-shadow",
-        isMain
-          ? "border-primary ring-2 ring-primary/25"
-          : "border-border hover:border-primary/40"
-      )}
-    >
-      <Image
-        src={src}
-        alt={alt}
-        fill
-        sizes="160px"
-        unoptimized={unoptimized}
-        className="object-cover transition-transform group-hover:scale-105"
-      />
-      {isMain && (
-        <Badge className="absolute bottom-2 start-2 px-2 py-0.5 text-[11px] shadow-sm">
-          {mainLabel}
-        </Badge>
-      )}
-      <Button
-        type="button"
-        variant="destructive"
-        size="icon-sm"
-        aria-label={removeLabel}
-        className="absolute end-2 top-2 rounded-full opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
-        disabled={disabled}
-        onClick={onRemove}
-      >
-        <Trash2 className="h-3.5 w-3.5" />
+    <div className={cn("group relative overflow-hidden rounded-xl border bg-muted transition-all duration-300", isMain ? "aspect-[21/9] border-primary ring-2 ring-primary/20 shadow-md" : "aspect-square border-border/50 hover:border-primary/40 hover:shadow-sm")}>
+      <Image src={src} alt={alt} fill sizes={isMain ? "500px" : "80px"} unoptimized={unoptimized} className="object-cover transition-transform duration-500 group-hover:scale-105" />
+      {isMain && <Badge className="absolute bottom-2 right-2 px-2.5 py-1 text-[10px] uppercase tracking-wider shadow-sm bg-primary/90 text-primary-foreground backdrop-blur-md">{mainLabel}</Badge>}
+      <Button type="button" variant="destructive" size="icon" aria-label={removeLabel} disabled={disabled} onClick={onRemove} className={cn("absolute left-1.5 top-1.5 h-8 w-8 rounded-full opacity-0 shadow-lg transition-all duration-300 group-hover:opacity-100 focus-visible:opacity-100 hover:scale-110", !isMain && "h-7 w-7 left-1 top-1")}>
+        <X className="h-4 w-4" />
       </Button>
     </div>
   );

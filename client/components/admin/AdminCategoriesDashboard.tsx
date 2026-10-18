@@ -17,6 +17,7 @@ import { authUserSchema } from "@/lib/validations/login";
 import { getCloudinaryPublicId } from "./types";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
+import { SharedActionButton } from "@/components/shared/SharedActionButton";
 import type { ApiResponse } from "./types";
 import {
   CategoryEditorDialog,
@@ -279,17 +280,17 @@ export function AdminCategoriesDashboard() {
           <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{t("title")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("description")}</p>
         </div>
-        <Button
+        <SharedActionButton
           type="button"
           className="gap-2 self-start sm:self-auto"
+          icon={<Plus />}
           onClick={() => {
             setEditingCategory(null);
             setEditorOpen(true);
           }}
         >
-          <Plus className="h-4 w-4" aria-hidden="true" />
           {t("create")}
-        </Button>
+        </SharedActionButton>
       </header>
 
       <Card className="gap-0 overflow-hidden rounded-xl py-0 shadow-none">

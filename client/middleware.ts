@@ -83,6 +83,14 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(request.nextUrl);
     }
 
+    const isUserRoute =
+      pathname === `/${locale}/user` || pathname.startsWith(`/${locale}/user/`);
+    if (isUserRoute && role === 'ADMIN') {
+      request.nextUrl.pathname = `/${locale}/admin`;
+      request.nextUrl.search = '';
+      return NextResponse.redirect(request.nextUrl);
+    }
+
     return;
   }
 

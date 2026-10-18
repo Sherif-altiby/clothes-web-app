@@ -14,18 +14,15 @@ import {
   PackageSearch,
   Plus,
   RefreshCw,
-  Search,
   ShieldAlert,
   Star,
   Tag,
   Trash2,
-  X,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { authUserSchema } from "@/lib/validations/login";
@@ -36,6 +33,7 @@ import { ProductEditorDialog } from "./ProductEditorDialog";
 import { ConfirmDeleteDialog } from "@/components/shared/ConfirmDeleteDialog";
 import { DataTable, type DataTableColumn } from "@/components/shared/DataTable";
 import { SharedSelect } from "@/components/shared/SharedSelect";
+import { SharedActionButton } from "@/components/shared/SharedActionButton";
 import {
   getCloudinaryPublicId,
   type AdminCategory,
@@ -44,6 +42,7 @@ import {
   type ProductFormData,
   type ProductPagination,
 } from "./types";
+import { SearchInput } from "../shared/search-input";
 
 const PAGE_SIZE = 10;
 const LOW_STOCK_THRESHOLD = 5;
@@ -511,19 +510,17 @@ export function AdminProductsDashboard() {
             </div>
             <p className="max-w-xl text-sm text-muted-foreground">{t("subtitle")}</p>
           </div>
-
-          <Button
+          <SharedActionButton
             type="button"
-            className="gap-2 self-start sm:self-auto"
+            icon={<Plus />}
             onClick={() => {
               setEditingProduct(null);
               setIsCreateOpen(true);
               setEditorSession((current) => current + 1);
             }}
           >
-            <Plus className="h-4 w-4" aria-hidden="true" />
             {t("createProduct")}
-          </Button>
+          </SharedActionButton>
         </header>
 
         <Card className="relative gap-0 overflow-hidden rounded-xl py-0 shadow-none">
@@ -543,32 +540,14 @@ export function AdminProductsDashboard() {
               <CardDescription>{t("productsDescription")}</CardDescription>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="relative w-full sm:max-w-xs">
-                <Search
-                  className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <Input
-                  value={search}
-                  onChange={(event) => setSearch(event.target.value)}
-                  placeholder={t("searchPlaceholder")}
-                  aria-label={t("searchLabel")}
-                  maxLength={100}
-                  className="px-9"
-                />
-                {search && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t("clearSearch")}
-                    className="absolute end-1 top-1/2 h-7 w-7 -translate-y-1/2 text-muted-foreground"
-                    onClick={() => setSearch("")}
-                  >
-                    <X className="h-3.5 w-3.5" aria-hidden="true" />
-                  </Button>
-                )}
-              </div>
+              <SearchInput
+                value={search}
+                onChange={setSearch}
+                placeholder={t("searchPlaceholder")}
+                aria-label={t("searchLabel")}
+                clearLabel={t("clearSearch")}
+                maxLength={100}
+              />
               <SharedSelect
                 value={categoryFilter}
                 onValueChange={(value) => {
