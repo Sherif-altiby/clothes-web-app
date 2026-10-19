@@ -15,7 +15,7 @@ export function AdminLayoutShell({
 
   return (
     <div
-      className="flex min-h-screen flex-col bg-muted/20 font-[family-name:var(--font-cairo)] lg:flex-row"
+      className="flex min-h-screen flex-row bg-muted/20 font-[family-name:var(--font-cairo)] lg:flex-row"
       dir="rtl"
     >
       <AdminSidebar

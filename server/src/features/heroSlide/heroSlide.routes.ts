@@ -10,7 +10,7 @@ import {
     updateHeroSlideController,
     deleteHeroSlideController,
     reorderHeroSlidesController,
-} from "./heroSlide.controller";
+} from "./heroSlide.controller"; 
 
 const router = Router();
 
@@ -22,7 +22,7 @@ const admin = Router();
 admin.use(authMiddleware, authAdminMiddleware);
 
 admin.get("/", getAllHeroSlidesController);
-admin.patch("/reorder", reorderHeroSlidesController); // before "/:id"
+admin.patch("/reorder", reorderHeroSlidesController);  
 admin.get("/:id", getHeroSlideByIdController);
 admin.post("/", createHeroSlideController);
 admin.patch("/:id", updateHeroSlideController);

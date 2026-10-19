@@ -8,7 +8,7 @@ export const authAdminMiddleware = (
     next: NextFunction
 ) => {
 
-    const token = req.cookies.jwtToken;
+    const token = req.cookies.accessToken 
 
     if (!token) {
         return next(

@@ -458,8 +458,8 @@ export function ProductEditorDialog({
                       </button>
                     ) : (
                       <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 mt-4" {...dropHandlers}>
-                        {tiles.map((tile, index) => (
-                          <div key={tile.key} className={cn(index === 0 && "col-span-3 sm:col-span-5")}>
+                        {tiles.map(({ key, ...tile }, index) => (
+                          <div key={key} className={cn(index === 0 && "col-span-3 sm:col-span-5")}>
                             <ImageTile {...tile} isMain={index === 0} mainLabel={labels.mainImage} disabled={isSaving} />
                           </div>
                         ))}
