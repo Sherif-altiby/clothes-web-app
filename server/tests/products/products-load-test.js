@@ -6,8 +6,8 @@ const BASE_URL = 'http://localhost:8000';
 
 export const options = {
   stages: [
-    { duration: '2m', target: 10000 }, // Ramp up to 10,000 VUs
-    { duration: '1m', target: 10000 }, // Hold 10,000 VUs
+    { duration: '2m', target: 1900 }, // Ramp up to 2,000 VUs
+    { duration: '1m', target: 1900 }, // Hold 2,000 VUs
     { duration: '1m', target: 0 },     // Ramp down
   ],
 

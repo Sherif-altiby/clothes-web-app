@@ -12,8 +12,12 @@ import reviewRoutes from "./features/review/review.routes";
 import { orderAdminRoutes, orderRoutes } from "./features/orders";
 import heroSlideRoutes from "./features/heroSlide/heroSlide.routes";
 import { uploadRouter } from "./features/upload";
+import { paymentRoutes } from "./features/payments";
 
 const app = express();
+
+// Stripe webhook: MUST come before express.json() (needs the raw body)
+app.use("/api/payments", paymentRoutes); 
 
 // built-in middlewares
 app.use(express.json());

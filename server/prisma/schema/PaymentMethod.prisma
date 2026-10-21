@@ -1,0 +1,4 @@
+enum PaymentMethod {
+  COD
+  CARD
+}

@@ -5,7 +5,7 @@ model Product {
   titleEn String
 
   descriptionAr String
-  descriptionEn String 
+  descriptionEn String
 
   baseSalary Float
   profit     Float

@@ -77,6 +77,10 @@ const categoriesData = [
     { key: "jackets", titleAr: "جاكيتات", titleEn: "Jackets" },
     { key: "shoes", titleAr: "أحذية", titleEn: "Shoes" },
     { key: "accessories", titleAr: "إكسسوارات", titleEn: "Accessories" },
+    { key: "dresses", titleAr: "فساتين", titleEn: "Dresses" },
+    { key: "sportswear", titleAr: "ملابس رياضية", titleEn: "Sportswear" },
+    { key: "knitwear", titleAr: "ملابس تريكو", titleEn: "Knitwear" },
+    { key: "bags", titleAr: "حقائب", titleEn: "Bags" },
 ];
 const heroSlidesData = [
     {
@@ -235,6 +239,52 @@ const productsData = [
         counts: 50,
     },
 ];
+const productVariations = [
+    { en: "Classic", ar: "كلاسيكي" },
+    { en: "Modern", ar: "عصري" },
+    { en: "Essential", ar: "أساسي" },
+    { en: "Relaxed", ar: "مريح" },
+    { en: "Premium", ar: "فاخر" },
+    { en: "Lightweight", ar: "خفيف" },
+    { en: "Everyday", ar: "يومي" },
+    { en: "Minimal", ar: "بسيط" },
+    { en: "Urban", ar: "عملي" },
+    { en: "Tailored", ar: "أنيق" },
+];
+const productColors = [
+    { en: "Black", ar: "أسود" },
+    { en: "White", ar: "أبيض" },
+    { en: "Navy", ar: "كحلي" },
+    { en: "Beige", ar: "بيج" },
+    { en: "Olive", ar: "زيتي" },
+    { en: "Gray", ar: "رمادي" },
+    { en: "Blue", ar: "أزرق" },
+    { en: "Brown", ar: "بني" },
+    { en: "Cream", ar: "كريمي" },
+    { en: "Green", ar: "أخضر" },
+];
+const generatedProductsData = Array.from({ length: 500 - productsData.length }, (_, index) => {
+    const category = categoriesData[index % categoriesData.length];
+    const variation = productVariations[Math.floor(index / categoriesData.length) % productVariations.length];
+    const color = productColors[Math.floor(index / categoriesData.length / productVariations.length) % productColors.length];
+    const number = String(index + 1).padStart(3, "0");
+    return {
+        key: `catalog-${number}`,
+        category: category.key,
+        titleAr: `${variation.ar} ${category.titleAr} ${color.ar} ${number}`,
+        titleEn: `${variation.en} ${category.titleEn} ${color.en} ${number}`,
+        descriptionAr: `${variation.ar} ${category.titleAr} بلون ${color.ar}، مصمم للراحة والاستخدام اليومي.`,
+        descriptionEn: `${variation.en} ${category.titleEn.toLowerCase()} in ${color.en.toLowerCase()}, designed for comfort and everyday wear.`,
+        baseSalary: 100 + (index % 20) * 25,
+        profit: 30 + (index % 10) * 10,
+        discount: [0, 5, 10, 15, 20][index % 5],
+        counts: 10 + (index % 41),
+    };
+});
+const allProductsData = [...productsData, ...generatedProductsData];
+if (categoriesData.length !== 10 || allProductsData.length !== 500) {
+    throw new Error("Seed data must contain exactly 10 categories and 500 products.");
+}
 const couponsData = [
     {
         code: "WELCOME10",
@@ -414,7 +464,7 @@ async function main() {
     console.log(`✔ Hero slides: ${heroSlidesData.length}`);
     /* ------------------------------ Products -------------------------------- */
     const productsByKey = {};
-    for (const p of productsData) {
+    for (const p of allProductsData) {
         productsByKey[p.key] = await prisma.product.create({
             data: {
                 titleAr: p.titleAr,
@@ -430,7 +480,7 @@ async function main() {
             },
         });
     }
-    console.log(`✔ Products: ${productsData.length}`);
+    console.log(`✔ Products: ${allProductsData.length}`);
     /* ------------------------------- Coupons -------------------------------- */
     const couponsByCode = {};
     for (const c of couponsData) {

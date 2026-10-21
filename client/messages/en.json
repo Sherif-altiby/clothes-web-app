@@ -357,6 +357,7 @@
       "breadcrumbHome": "Home",
       "backToCategory": "Back to {category}",
       "productImages": "Product images",
+      "discountBadge": "{percent}% OFF",
       "off": "OFF",
       "noImage": "No product image available",
       "showImage": "Show image {number}",
@@ -425,6 +426,7 @@
     "itemRemoved": "Item removed from your cart.",
     "cartCleared": "Your cart has been cleared.",
     "updateError": "We couldn't update your cart. Please try again.",
+    "checkoutError": "We couldn't start checkout. Please try again.",
     "continue": "Continue shopping",
     "clear": "Clear cart",
     "remove": "Remove {name}",
@@ -436,8 +438,17 @@
     "free": "Free",
     "total": "Total",
     "checkout": "Checkout",
+    "checkoutPending": "Opening secure checkout...",
     "freeShippingLeft": "Add {amount} for free shipping",
     "freeShippingReached": "You've unlocked free shipping"
+  },
+  "paymentResult": {
+    "successTitle": "Payment received",
+    "successDescription": "Your payment was submitted successfully. Your order is being confirmed.",
+    "cancelledTitle": "Payment not completed",
+    "cancelledDescription": "You haven't been charged. You can return to your cart and try again.",
+    "orderReference": "Order reference: {id}",
+    "continueShopping": "Continue shopping"
   },
 
   "favourites": {

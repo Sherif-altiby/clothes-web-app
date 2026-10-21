@@ -1,6 +1,6 @@
 // order.controller.ts
 import { NextFunction, Request, Response } from "express";
-import { OrderStatus } from "@prisma/client";
+import { OrderStatus, PaymentMethod } from "@prisma/client";
 import { asyncHandler } from "../../shared/utils/asyncHandler";
 import { ApiError } from "../../shared/utils/ApiError";
 import {
@@ -10,6 +10,7 @@ import {
     getAllOrdersService,
     getMyOrdersService,
     getOrderByIdService,
+    getPaymentLinkService,
     updateOrderStatusService,
 } from "./order.services";
 
@@ -20,6 +21,16 @@ const parseStatus = (value: unknown): OrderStatus => {
     return value as OrderStatus;
 };
 
+// Missing = COD, so existing clients keep working
+const parsePaymentMethod = (value: unknown): PaymentMethod => {
+    if (value === undefined || value === null) return PaymentMethod.COD;
+
+    if (typeof value !== "string" || !(Object.values(PaymentMethod) as string[]).includes(value)) {
+        throw new ApiError(400, `paymentMethod must be one of: ${Object.values(PaymentMethod).join(", ")}`);
+    }
+    return value as PaymentMethod;
+};
+
 const parsePage = (req: Request) => ({
     page: req.query.page ? parseInt(req.query.page as string, 10) : 1,
     limit: req.query.limit ? parseInt(req.query.limit as string, 10) : 10,
@@ -28,15 +39,29 @@ const parsePage = (req: Request) => ({
 /* --------------------------------- User ----------------------------------- */
 
 export const createOrderController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-    const { couponCode } = req.body || {};
+    const { couponCode, paymentMethod } = req.body || {};
 
     if (couponCode !== undefined && typeof couponCode !== "string") {
         throw new ApiError(400, "couponCode must be a string");
     }
 
-    const order = await createOrderService(req.user.userId, req.lang, couponCode || undefined);
+    const { order, checkoutUrl } = await createOrderService(
+        req.user.userId,
+        req.lang,
+        parsePaymentMethod(paymentMethod),
+        couponCode || undefined
+    );
 
-    res.status(201).json({ success: true, data: order });
+    // For CARD orders the client must redirect the browser to `checkoutUrl`
+    res.status(201).json({ success: true, data: { ...order, checkoutUrl } });
+});
+
+export const payMyOrderController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const orderId = req.params.orderId as string;
+
+    const checkoutUrl = await getPaymentLinkService(req.user.userId, orderId);
+
+    res.status(200).json({ success: true, data: { checkoutUrl } });
 });
 
 export const getMyOrdersController = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

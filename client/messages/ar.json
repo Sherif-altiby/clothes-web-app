@@ -357,6 +357,7 @@
       "breadcrumbHome": "الرئيسية",
       "backToCategory": "العودة إلى {category}",
       "productImages": "صور المنتج",
+      "discountBadge": "خصم {percent}٪",
       "off": "خصم",
       "noImage": "لا توجد صورة لهذا المنتج",
       "showImage": "عرض الصورة {number}",
@@ -425,6 +426,7 @@
     "itemRemoved": "تمت إزالة المنتج من سلتك.",
     "cartCleared": "تم إفراغ سلتك.",
     "updateError": "تعذّر تحديث سلتك. يرجى المحاولة مرة أخرى.",
+    "checkoutError": "تعذّر بدء إتمام الشراء. يرجى المحاولة مرة أخرى.",
     "continue": "متابعة التسوق",
     "clear": "إفراغ السلة",
     "remove": "إزالة {name}",
@@ -436,8 +438,17 @@
     "free": "مجاني",
     "total": "الإجمالي",
     "checkout": "إتمام الشراء",
+    "checkoutPending": "جارٍ فتح صفحة الدفع الآمنة...",
     "freeShippingLeft": "أضف {amount} للحصول على شحن مجاني",
     "freeShippingReached": "حصلت على الشحن المجاني"
+  },
+  "paymentResult": {
+    "successTitle": "تم استلام الدفعة",
+    "successDescription": "تم إرسال دفعتك بنجاح، ويجري الآن تأكيد طلبك.",
+    "cancelledTitle": "لم تكتمل عملية الدفع",
+    "cancelledDescription": "لم يتم خصم أي مبلغ منك. يمكنك العودة إلى سلتك والمحاولة مرة أخرى.",
+    "orderReference": "رقم الطلب: {id}",
+    "continueShopping": "متابعة التسوق"
   },
   "favourites": {
     "title": "المفضلة",

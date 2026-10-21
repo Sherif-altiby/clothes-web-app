@@ -4,7 +4,7 @@ model Category {
   titleAr String @unique
   titleEn String @unique
 
-  image   String
+  image String
 
   products Product[]
 

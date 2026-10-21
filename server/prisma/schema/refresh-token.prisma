@@ -12,5 +12,3 @@ model RefreshToken {
   @@index([userId])
   @@index([familyId])
 }
-
- 

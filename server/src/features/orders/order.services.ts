@@ -1,10 +1,18 @@
 // order.services.ts
-import { DiscountType, OrderStatus, Prisma } from "@prisma/client";
+import { DiscountType, Order, OrderStatus, PaymentMethod, PaymentStatus, Prisma } from "@prisma/client";
 import { prisma } from "../../prisma";
 import { ApiError } from "../../shared/utils/ApiError";
 import { Lang } from "../../shared/middlewares/lang.middleware";
 import { localizeOrder } from "../../shared/utils/localize";
 import { getUnitPrice, round2 } from "../../shared/utils/price";
+import { MIN_CARD_AMOUNT_CENTS } from "../../config/stripe";
+import {
+    createCheckoutSession,
+    expireCheckoutSession,
+    refundPayment,
+    retrieveCheckoutSession,
+    toCents,
+} from "../../shared/services/stripe.service";
 
 const orderInclude = {
     items: { include: { product: true } },
@@ -18,6 +26,15 @@ const STATUS_FLOW: Record<OrderStatus, OrderStatus[]> = {
     [OrderStatus.SUCCESSED]: [],
     [OrderStatus.CANCELLED]: [],
 };
+
+const isUnpaidCardOrder = (o: Pick<Order, "paymentMethod" | "paymentStatus">) =>
+    o.paymentMethod === PaymentMethod.CARD && o.paymentStatus === PaymentStatus.UNPAID;
+
+const isPaidCardOrder = (o: Pick<Order, "paymentMethod" | "paymentStatus">) =>
+    o.paymentMethod === PaymentMethod.CARD && o.paymentStatus === PaymentStatus.PAID;
+
+const findOrderOrThrow = (orderId: string) =>
+    prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: orderInclude });
 
 /* -------------------------------------------------------------------------- */
 /*                                  Helpers                                   */
@@ -73,8 +90,26 @@ const redeemCoupon = async (
     return { couponId: coupon.id, total: round2(Math.max(subtotal - discount, 0)) };
 };
 
-// Marks the order cancelled, returns stock, and releases the coupon
-const cancelOrderInTx = async (tx: Prisma.TransactionClient, orderId: string) => {
+/**
+ * Cancels an order, returns stock and releases the coupon.
+ *
+ * `guard` describes the state the order must still be in (e.g. { status: PENDING }).
+ * The status flip is a compare-and-set, so if two requests cancel the same order at once
+ * (user + admin + Stripe "expired" webhook) exactly ONE wins and restores stock.
+ * Returns null when the guard no longer matches (someone else already changed the order).
+ */
+export const cancelOrderInTx = async (
+    tx: Prisma.TransactionClient,
+    orderId: string,
+    guard: Prisma.OrderWhereInput
+) => {
+    const claimed = await tx.order.updateMany({
+        where: { id: orderId, ...guard },
+        data: { status: OrderStatus.CANCELLED },
+    });
+
+    if (claimed.count === 0) return null;
+
     const items = await tx.orderItem.findMany({ where: { orderId } });
 
     for (const item of items) {
@@ -94,11 +129,58 @@ const cancelOrderInTx = async (tx: Prisma.TransactionClient, orderId: string) =>
         });
     }
 
-    return tx.order.update({
-        where: { id: orderId },
-        data: { status: OrderStatus.CANCELLED },
-        include: orderInclude,
-    });
+    return tx.order.findUniqueOrThrow({ where: { id: orderId }, include: orderInclude });
+};
+
+// Refunds a paid card order. Safe to call twice: Stripe dedupes on the idempotency key.
+const refundOrder = async (orderId: string, paymentIntentId: string | null) => {
+    if (!paymentIntentId) {
+        console.error(`[REFUND_FAILED] order ${orderId} has no payment intent`);
+        return;
+    }
+
+    try {
+        await refundPayment(paymentIntentId, `refund-order-${orderId}`);
+
+        await prisma.order.updateMany({
+            where: { id: orderId, paymentStatus: PaymentStatus.PAID },
+            data: { paymentStatus: PaymentStatus.REFUNDED, refundedAt: new Date() },
+        });
+    } catch (err) {
+        // The order is already cancelled. Keep it flagged (CANCELLED + PAID) for manual follow-up.
+        console.error(`[REFUND_FAILED] order ${orderId}`, err);
+    }
+};
+
+// Shared by the user and admin cancel flows
+const cancelOrder = async (order: Order, lang: Lang) => {
+    // 1. Unpaid card order: close the Stripe session first so it can never be paid afterwards
+    if (isUnpaidCardOrder(order) && order.stripeSessionId) {
+        await expireCheckoutSession(order.stripeSessionId);
+    }
+
+    // 2. Cancel in the DB. Guarding on the state we read means a concurrent webhook
+    //    (payment just landed) or another admin action makes this fail instead of corrupting data.
+    const cancelled = await prisma.$transaction((tx) =>
+        cancelOrderInTx(tx, order.id, { status: order.status, paymentStatus: order.paymentStatus })
+    );
+
+    if (!cancelled) {
+        const current = await findOrderOrThrow(order.id);
+
+        // Someone else (e.g. the Stripe "expired" webhook) already cancelled it: that's fine
+        if (current.status === OrderStatus.CANCELLED) return localizeOrder(current, lang);
+
+        throw new ApiError(409, "Order was updated by another request. Please try again");
+    }
+
+    // 3. Paid by card: give the money back
+    if (isPaidCardOrder(order)) {
+        await refundOrder(order.id, order.stripePaymentIntentId);
+        return localizeOrder(await findOrderOrThrow(order.id), lang);
+    }
+
+    return localizeOrder(cancelled, lang);
 };
 
 const listOrders = async (
@@ -133,8 +215,13 @@ const listOrders = async (
 /*                                    User                                    */
 /* -------------------------------------------------------------------------- */
 
-// Checkout: turns the user's cart into an order
-export const createOrderService = async (userId: string, lang: Lang, couponCode?: string) => {
+// Checkout: turns the user's cart into an order. For CARD it also opens a Stripe Checkout Session.
+export const createOrderService = async (
+    userId: string,
+    lang: Lang,
+    paymentMethod: PaymentMethod = PaymentMethod.COD,
+    couponCode?: string
+) => {
     const order = await prisma.$transaction(async (tx) => {
         const cart = await tx.cart.findUnique({
             where: { userId },
@@ -145,8 +232,21 @@ export const createOrderService = async (userId: string, lang: Lang, couponCode?
             throw new ApiError(400, "Cart is empty");
         }
 
-        // Take stock atomically; fails if another order took it first
-        for (const item of cart.items) {
+        // Claim the cart items first. If a double-click / retry runs this at the same time,
+        // the second transaction waits on the row locks, finds 0 rows left, and aborts.
+        const claimed = await tx.cartItem.deleteMany({
+            where: { id: { in: cart.items.map((i) => i.id) } },
+        });
+
+        if (claimed.count !== cart.items.length) {
+            throw new ApiError(409, "Your cart changed while checking out. Please try again");
+        }
+
+        // Take stock atomically; fails if another order took it first.
+        // Sorted so concurrent orders always lock products in the same order (no deadlocks).
+        const byProduct = [...cart.items].sort((a, b) => a.productId.localeCompare(b.productId));
+
+        for (const item of byProduct) {
             const updated = await tx.product.updateMany({
                 where: { id: item.productId, counts: { gte: item.quantity } },
                 data: { counts: { decrement: item.quantity } },
@@ -175,8 +275,12 @@ export const createOrderService = async (userId: string, lang: Lang, couponCode?
             couponId = redeemed.couponId;
         }
 
+        if (paymentMethod === PaymentMethod.CARD && toCents(total) < MIN_CARD_AMOUNT_CENTS) {
+            throw new ApiError(400, "Order total is too low for card payment. Please choose cash on delivery");
+        }
+
         const created = await tx.order.create({
-            data: { userId, total, items: { create: items } },
+            data: { userId, total, paymentMethod, items: { create: items } },
             include: orderInclude,
         });
 
@@ -186,12 +290,84 @@ export const createOrderService = async (userId: string, lang: Lang, couponCode?
             });
         }
 
-        await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
-
         return created;
     });
 
-    return localizeOrder(order, lang);
+    if (paymentMethod !== PaymentMethod.CARD) {
+        return { order: localizeOrder(order, lang), checkoutUrl: null };
+    }
+
+    // Card: talk to Stripe AFTER the DB commit. Never hold a DB transaction open on a network call.
+    let sessionId: string | undefined;
+
+    try {
+        const session = await createCheckoutSession({
+            orderId: order.id,
+            userId,
+            locale: lang,
+            customerEmail: order.user.email ?? undefined,
+            payableCents: toCents(order.total),
+            lineItems: order.items.map((i) => ({
+                name: i.product.titleEn,
+                unitAmount: toCents(i.unitPrice),
+                quantity: i.quantity,
+            })),
+        });
+
+        sessionId = session.sessionId;
+
+        await prisma.order.update({
+            where: { id: order.id },
+            data: { stripeSessionId: session.sessionId },
+        });
+
+        return {
+            order: localizeOrder({ ...order, stripeSessionId: session.sessionId }, lang),
+            checkoutUrl: session.url,
+        };
+    } catch (err) {
+        // Could not start the payment: release stock + coupon so nothing stays reserved
+        console.error(`[CHECKOUT_FAILED] order ${order.id}`, err);
+
+        if (sessionId) {
+            await expireCheckoutSession(sessionId).catch(() => undefined);
+        }
+
+        await prisma.$transaction((tx) =>
+            cancelOrderInTx(tx, order.id, { status: OrderStatus.PENDING, paymentStatus: PaymentStatus.UNPAID })
+        );
+
+        throw err instanceof ApiError ? err : new ApiError(502, "Could not start the payment. Please try again");
+    }
+};
+
+// Lets the customer resume payment if they closed the Stripe tab
+export const getPaymentLinkService = async (userId: string, orderId: string) => {
+    const order = await prisma.order.findFirst({ where: { id: orderId, userId } });
+
+    if (!order) {
+        throw new ApiError(404, "Order not found");
+    }
+
+    if (order.paymentMethod !== PaymentMethod.CARD) {
+        throw new ApiError(400, "This order is not a card order");
+    }
+
+    if (order.paymentStatus === PaymentStatus.PAID) {
+        throw new ApiError(400, "Order is already paid");
+    }
+
+    if (order.status !== OrderStatus.PENDING || !order.stripeSessionId) {
+        throw new ApiError(400, "Order is not awaiting payment");
+    }
+
+    const session = await retrieveCheckoutSession(order.stripeSessionId);
+
+    if (session.status !== "open" || !session.url) {
+        throw new ApiError(409, "The payment session has expired");
+    }
+
+    return session.url;
 };
 
 export const getMyOrdersService = async (
@@ -227,9 +403,7 @@ export const cancelMyOrderService = async (userId: string, lang: Lang, orderId: 
         throw new ApiError(400, "Only pending orders can be cancelled");
     }
 
-    const cancelled = await prisma.$transaction((tx) => cancelOrderInTx(tx, orderId));
-
-    return localizeOrder(cancelled, lang);
+    return cancelOrder(order, lang);
 };
 
 /* -------------------------------------------------------------------------- */
@@ -264,13 +438,30 @@ export const updateOrderStatusService = async (orderId: string, lang: Lang, stat
         throw new ApiError(400, `Cannot change status from ${order.status} to ${status}`);
     }
 
-    const updated = await prisma.$transaction((tx) =>
-        status === OrderStatus.CANCELLED
-            ? cancelOrderInTx(tx, orderId) // returns stock + releases coupon
-            : tx.order.update({ where: { id: orderId }, data: { status }, include: orderInclude })
-    );
+    if (status === OrderStatus.CANCELLED) {
+        return cancelOrder(order, lang); // returns stock, releases coupon, refunds if paid
+    }
 
-    return localizeOrder(updated, lang);
+    // Never ship a card order that hasn't been paid
+    if (
+        status === OrderStatus.DELIVERING &&
+        order.paymentMethod === PaymentMethod.CARD &&
+        order.paymentStatus !== PaymentStatus.PAID
+    ) {
+        throw new ApiError(400, "Card orders must be paid before they can be delivered");
+    }
+
+    // Compare-and-set: only update if nobody changed the status since we read it
+    const updated = await prisma.order.updateMany({
+        where: { id: orderId, status: order.status },
+        data: { status },
+    });
+
+    if (updated.count === 0) {
+        throw new ApiError(409, "Order was updated by another request. Please try again");
+    }
+
+    return localizeOrder(await findOrderOrThrow(orderId), lang);
 };
 
 export const deleteOrderService = async (orderId: string) => {
@@ -282,6 +473,11 @@ export const deleteOrderService = async (orderId: string) => {
 
     if (order.status !== OrderStatus.CANCELLED) {
         throw new ApiError(400, "Only cancelled orders can be deleted. Cancel the order first");
+    }
+
+    // Don't erase the record of money that was never returned
+    if (order.paymentStatus === PaymentStatus.PAID) {
+        throw new ApiError(400, "This order is paid and not refunded. Refund it before deleting");
     }
 
     await prisma.order.delete({ where: { id: orderId } });

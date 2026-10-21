@@ -3,9 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { toast } from "sonner";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import { api } from "@/lib/api";
+import { CART_QUERY_KEY } from "@/lib/cart-context";
 import { useCart } from "@/lib/cart-context";
 const FREE_SHIPPING_THRESHOLD = 100;
 const SHIPPING_FEE = 9.99;
@@ -19,6 +24,32 @@ export function CartView() {
     const routeLocale = pathname?.match(/^\/(en|ar)(?:\/|$)/)?.[1];
     const locale = routeLocale === "ar" || routeLocale === "en" ? routeLocale : currentLocale;
     const { items, hydrated, error, totalItems, subtotal, updateQuantity, removeItem, clearCart, retry } = useCart();
+    const queryClient = useQueryClient();
+    const checkoutMutation = useMutation({
+        mutationFn: async () => {
+            const response = await api.post("/user/orders", { paymentMethod: "CARD" });
+            const parsed = z.object({
+                success: z.literal(true),
+                data: z.object({ checkoutUrl: z.string().url() }),
+            }).safeParse(response.data);
+
+            if (!parsed.success) {
+                throw new Error("The server returned an invalid checkout response.");
+            }
+
+            const checkoutUrl = new URL(parsed.data.data.checkoutUrl);
+            if (checkoutUrl.protocol !== "https:" || checkoutUrl.hostname !== "checkout.stripe.com") {
+                throw new Error("The server returned an invalid Stripe Checkout URL.");
+            }
+
+            return checkoutUrl.toString();
+        },
+        onSuccess: (checkoutUrl) => {
+            void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+            window.location.assign(checkoutUrl);
+        },
+        onError: () => toast.error(t("checkoutError")),
+    });
 
     /* ── Loading cart data ── */
     if (!hydrated) {
@@ -204,11 +235,13 @@ export function CartView() {
                     </dl>
 
                     <Button
-                        asChild
+                        type="button"
                         size="lg"
+                        onClick={() => checkoutMutation.mutate()}
+                        disabled={checkoutMutation.isPending}
                         className="h-12 w-full rounded-xl text-sm font-bold shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-primary/25 active:translate-y-0"
                     >
-                        <Link href={`/${locale}/checkout`}>{t("checkout")}</Link>
+                        {checkoutMutation.isPending ? t("checkoutPending") : t("checkout")}
                     </Button>
 
                     <Link
