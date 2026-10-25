@@ -321,11 +321,46 @@
       "men": "Men",
       "kids": "Kids",
       "shoes": "Shoes",
+      "jackets": "Jackets",
+      "sportswear": "Sportswear",
       "accessories": "Accessories",
       "sport": "Sport",
       "loadError": "Categories could not be loaded.",
       "retry": "Try again",
       "empty": "No categories are available yet."
+    },
+    "offers": {
+      "eyebrow": "A little something special",
+      "title": "Good finds. Even better prices.",
+      "subtitle": "The pieces you love, at prices worth making room for.",
+      "loading": "Loading offers",
+      "loadError": "Offers could not be loaded.",
+      "retry": "Try again",
+      "empty": "There are no offers available right now.",
+      "limitedOffer": "A limited-time offer",
+      "off": "off",
+      "shopNow": "Shop this offer",
+      "backToOffers": "Back to the home page",
+      "categoryLabel": "Offer category",
+      "browseCategory": "Browse this category",
+      "categoryLoadError": "The category could not be loaded.",
+      "loadingCategory": "Loading category...",
+      "categoryUnavailable": "This offer category is currently unavailable.",
+      "categoryRetry": "Try again",
+      "campaigns": {
+        "outerwear": {
+          "title": "The outerwear edit",
+          "description": "Layer up in considered styles made for the season ahead."
+        },
+        "footwear": {
+          "title": "Step into savings",
+          "description": "Find your new everyday favorites, from the ground up."
+        },
+        "activewear": {
+          "title": "Made to move",
+          "description": "Comfort-first essentials for every kind of day."
+        }
+      }
     },
     "filters": {
       "search": "Search products",

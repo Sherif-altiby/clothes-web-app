@@ -73,7 +73,7 @@ export function FeaturedProducts() {
         <section className="container mx-auto px-4 pb-16 pt-4">
             <div className="flex items-end justify-between gap-4">
                 <div className="space-y-1">
-                    <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+                    <h2 className="text-2xl  tracking-tight text-foreground md:text-3xl font-bold">
                         {t("title")}
                     </h2>
                     <p className="text-sm text-muted-foreground">{t("subtitle")}</p>

@@ -1,8 +1,7 @@
 import { Categories } from "@/components/home/Categories";
 import { FeaturedProducts } from "@/components/home/FeaturedProducts";
 import { HeroSlider } from "@/components/home/HeroSlider";
-
- 
+import { OffersSection } from "@/components/home/OffersSection";
 
 export default function HomePage() {
     return (
@@ -12,6 +11,7 @@ export default function HomePage() {
             </div>
             {/* <PerksStrip />/ */}
             <Categories />
+            <OffersSection />
             <FeaturedProducts />
          </main>
     );

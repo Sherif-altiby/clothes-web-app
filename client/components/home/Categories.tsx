@@ -39,7 +39,7 @@ export function Categories() {
 
     return (
         <section className="container mx-auto px-4 py-12">
-            <h2 className="text-2xl font-black tracking-tight text-foreground md:text-3xl">
+            <h2 className="text-2xl  tracking-tight text-foreground md:text-3xl font-bold">
                 {t("title")}
             </h2>
 
