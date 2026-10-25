@@ -15,6 +15,7 @@ interface Product {
     baseSalary: number;
     profit: number;
     discount: number | null;
+    unitPrice: number;
     counts: number;
     images: string[];
     categoryId: string;
@@ -107,6 +108,7 @@ export function FeaturedProducts() {
                             description={product.description}
                             price={product.baseSalary + product.profit}
                             discountPercentage={product.discount ?? undefined}
+                            discountedPrice={product.unitPrice}
                             counts={product.counts}
                             imageUrl={product.images[0]}
                             reviewSummary={product.reviewSummary}

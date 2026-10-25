@@ -7,6 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { toast } from "sonner";
+import axios from "axios";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -48,7 +49,14 @@ export function CartView() {
             void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
             window.location.assign(checkoutUrl);
         },
-        onError: () => toast.error(t("checkoutError")),
+        onError: (error) => {
+            if (axios.isAxiosError(error) && error.response?.status === 409) {
+                void queryClient.invalidateQueries({ queryKey: CART_QUERY_KEY });
+                toast.error(t("checkoutPriceChanged"));
+                return;
+            }
+            toast.error(t("checkoutError"));
+        },
     });
 
     /* ── Loading cart data ── */
@@ -152,6 +160,12 @@ export function CartView() {
                                                 </span>
                                             )}
                                         </div>
+                                        {item.discountPercentage > 0 && (
+                                            <p className="text-xs font-semibold text-primary">
+                                                {t("discountApplied", { percent: item.discountPercentage })}
+                                                {item.offerTitle ? ` · ${item.offerTitle}` : ""}
+                                            </p>
+                                        )}
                                     </div>
 
                                     <button

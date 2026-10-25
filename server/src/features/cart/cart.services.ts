@@ -3,6 +3,7 @@ import { prisma } from "../../prisma";
 import { ApiError } from "../../shared/utils/ApiError";
 import { Lang } from "../../shared/middlewares/lang.middleware";
 import { localizeCart } from "../../shared/utils/localize";
+import { resolveProductPrices } from "../offers/offer-pricing";
 
 const cartInclude = {
   items: { include: { product: true } },
@@ -20,7 +21,27 @@ const findOrCreateCart = (userId: string) =>
 // Localized cart, returned to the client
 export const getOrCreateCart = async (userId: string, lang: Lang) => {
   const cart = await findOrCreateCart(userId);
-  return localizeCart(cart, lang);
+  const prices = await resolveProductPrices(
+    prisma,
+    cart.items.map((item) => item.product)
+  );
+
+  const items = cart.items.map((item) => {
+    const price = prices.get(item.productId);
+    if (!price) throw new ApiError(500, "Could not calculate cart item price");
+    return { ...item, ...price };
+  });
+
+  await Promise.all(
+    cart.items.flatMap((item) => {
+      const price = prices.get(item.productId);
+      return price && price.unitPrice !== item.unitPrice
+        ? [prisma.cartItem.update({ where: { id: item.id }, data: { unitPrice: price.unitPrice } })]
+        : [];
+    })
+  );
+
+  return localizeCart({ ...cart, items }, lang);
 };
 
 export const addItemToCart = async (
@@ -39,23 +60,32 @@ export const addItemToCart = async (
     throw new ApiError(404, "Product not found");
   }
 
-  const unitPrice = product.baseSalary + product.profit - (product.discount || 0);
+  if (product.counts < 1) {
+    throw new ApiError(409, "This product is out of stock");
+  }
 
   const existingItem = await prisma.cartItem.findUnique({
     where: { cartId_productId: { cartId: cart.id, productId } },
   });
+
+  if ((existingItem?.quantity ?? 0) + quantity > product.counts) {
+    throw new ApiError(409, "Requested quantity exceeds available stock");
+  }
+
+  const price = (await resolveProductPrices(prisma, [product])).get(product.id);
+  if (!price) throw new ApiError(500, "Could not calculate product price");
 
   if (existingItem) {
     await prisma.cartItem.update({
       where: { id: existingItem.id },
       data: {
         quantity: existingItem.quantity + quantity,
-        unitPrice, // update price in case it changed
+        unitPrice: price.unitPrice,
       },
     });
   } else {
     await prisma.cartItem.create({
-      data: { cartId: cart.id, productId, quantity, unitPrice },
+      data: { cartId: cart.id, productId, quantity, unitPrice: price.unitPrice },
     });
   }
 
@@ -76,10 +106,15 @@ export const updateCartItemQuantity = async (
 
   const existingItem = await prisma.cartItem.findUnique({
     where: { cartId_productId: { cartId: cart.id, productId } },
+    include: { product: true },
   });
 
   if (!existingItem) {
     throw new ApiError(404, "Item not found in cart");
+  }
+
+  if (quantity > existingItem.product.counts) {
+    throw new ApiError(409, "Requested quantity exceeds available stock");
   }
 
   if (quantity <= 0) {

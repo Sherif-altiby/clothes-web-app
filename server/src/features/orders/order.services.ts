@@ -4,7 +4,7 @@ import { prisma } from "../../prisma";
 import { ApiError } from "../../shared/utils/ApiError";
 import { Lang } from "../../shared/middlewares/lang.middleware";
 import { localizeOrder } from "../../shared/utils/localize";
-import { getUnitPrice, round2 } from "../../shared/utils/price";
+import { getShippingCost, round2 } from "../../shared/utils/price";
 import { MIN_CARD_AMOUNT_CENTS } from "../../config/stripe";
 import {
     createCheckoutSession,
@@ -13,6 +13,7 @@ import {
     retrieveCheckoutSession,
     toCents,
 } from "../../shared/services/stripe.service";
+import { resolveProductPrices } from "../offers/offer-pricing";
 
 const orderInclude = {
     items: { include: { product: true } },
@@ -248,30 +249,50 @@ export const createOrderService = async (
 
         for (const item of byProduct) {
             const updated = await tx.product.updateMany({
-                where: { id: item.productId, counts: { gte: item.quantity } },
+                where: {
+                    id: item.productId,
+                    counts: { gte: item.quantity },
+                    categoryId: item.product.categoryId,
+                    baseSalary: item.product.baseSalary,
+                    profit: item.product.profit,
+                    discount: item.product.discount,
+                },
                 data: { counts: { decrement: item.quantity } },
             });
 
             if (updated.count === 0) {
-                throw new ApiError(400, `Not enough stock for "${item.product.titleEn}"`);
+                throw new ApiError(409, `Price or available stock changed for "${item.product.titleEn}". Review your cart`);
             }
         }
 
-        // Prices come from the products, never from the client or the cart
-        const items = cart.items.map((i) => ({
-            productId: i.productId,
-            quantity: i.quantity,
-            unitPrice: getUnitPrice(i.product),
-        }));
+        const prices = await resolveProductPrices(tx, cart.items.map((item) => item.product));
+        const items = cart.items.map((item) => {
+            const price = prices.get(item.productId);
+            if (!price) throw new ApiError(500, "Could not calculate order item price");
+            if (price.unitPrice !== item.unitPrice) {
+                throw new ApiError(409, "Cart prices changed. Review your cart before checking out");
+            }
+            return {
+                productId: item.productId,
+                quantity: item.quantity,
+                unitPrice: price.unitPrice,
+                originalUnitPrice: price.originalUnitPrice,
+                discountPercentage: price.discountPercentage,
+                offerId: price.offerId,
+                offerTitleAr: price.offerTitleAr,
+                offerTitleEn: price.offerTitleEn,
+            };
+        });
 
         const subtotal = round2(items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0));
 
-        let total = subtotal;
+        const shippingCost = getShippingCost(subtotal);
+        let total = round2(subtotal + shippingCost);
         let couponId: string | null = null;
 
         if (couponCode) {
             const redeemed = await redeemCoupon(tx, couponCode, userId, subtotal);
-            total = redeemed.total;
+            total = round2(redeemed.total + shippingCost);
             couponId = redeemed.couponId;
         }
 
@@ -280,7 +301,7 @@ export const createOrderService = async (
         }
 
         const created = await tx.order.create({
-            data: { userId, total, paymentMethod, items: { create: items } },
+            data: { userId, total, shippingCost, paymentMethod, items: { create: items } },
             include: orderInclude,
         });
 
@@ -291,6 +312,11 @@ export const createOrderService = async (
         }
 
         return created;
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }).catch((error: unknown) => {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") {
+            throw new ApiError(409, "Inventory or offers changed during checkout. Review your cart and try again");
+        }
+        throw error;
     });
 
     if (paymentMethod !== PaymentMethod.CARD) {
@@ -311,7 +337,11 @@ export const createOrderService = async (
                 name: i.product.titleEn,
                 unitAmount: toCents(i.unitPrice),
                 quantity: i.quantity,
-            })),
+            })).concat(
+                order.shippingCost > 0
+                    ? [{ name: "Shipping", unitAmount: toCents(order.shippingCost), quantity: 1 }]
+                    : []
+            ),
         });
 
         sessionId = session.sessionId;

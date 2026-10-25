@@ -9,6 +9,7 @@ model Order {
   status OrderStatus @default(PENDING)
 
   total Float
+  shippingCost Float @default(0)
 
   paymentMethod PaymentMethod @default(COD)
   paymentStatus PaymentStatus @default(UNPAID)

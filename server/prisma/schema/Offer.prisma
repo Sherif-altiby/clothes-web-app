@@ -1,0 +1,49 @@
+enum OfferStatus {
+  PAUSED
+  ACTIVE
+  ARCHIVED
+}
+
+model Offer {
+  id String @id @default(cuid())
+
+  titleAr       String
+  titleEn       String
+  descriptionAr String
+  descriptionEn String
+  image         String
+  discount      Float
+  startsAt      DateTime
+  endsAt        DateTime
+  status        OfferStatus @default(PAUSED)
+
+  products   OfferProduct[]
+  categories OfferCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, startsAt, endsAt])
+}
+
+model OfferProduct {
+  offerId String
+  offer   Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([offerId, productId])
+  @@index([productId])
+}
+
+model OfferCategory {
+  offerId String
+  offer   Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([offerId, categoryId])
+  @@index([categoryId])
+}

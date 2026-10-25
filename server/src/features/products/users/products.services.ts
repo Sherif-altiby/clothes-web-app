@@ -4,6 +4,7 @@ import { prisma } from "../../../prisma";
 import { ApiError } from "../../../shared/utils/ApiError";
 import { Lang } from "../../../shared/middlewares/lang.middleware";
 import { localizeCategoryTitle, localizeProduct } from "../../../shared/utils/localize";
+import { resolveProductPrices } from "../../offers/offer-pricing";
 
 type GetProductsOptions = {
     lang: Lang;
@@ -69,6 +70,7 @@ export const getProducts = async ({
           })
         : [];
     const statsByProductId = new Map(reviewStats.map((stats) => [stats.productId, stats]));
+    const prices = await resolveProductPrices(prisma, products);
 
     return {
         pagination: {
@@ -79,9 +81,16 @@ export const getProducts = async ({
         },
         products: products.map((product) => {
             const stats = statsByProductId.get(product.id);
+            const price = prices.get(product.id);
+            if (!price) throw new ApiError(500, "Could not calculate product price");
 
             return {
                 ...localizeProduct(product, lang),
+                discount: price.discountPercentage,
+                originalUnitPrice: price.originalUnitPrice,
+                unitPrice: price.unitPrice,
+                offerId: price.offerId,
+                offerTitle: lang === "ar" ? price.offerTitleAr : price.offerTitleEn,
                 images: product.images.slice(0, 1),
                 reviewSummary: {
                     averageRating: stats?._avg.rating
@@ -116,7 +125,17 @@ export const getProductById = async (productId: string, lang: Lang) => {
         throw new ApiError(404, "Product not found");
     }
 
-    const localizedProduct = localizeProduct(product, lang);
+    const price = (await resolveProductPrices(prisma, [product])).get(product.id);
+    if (!price) throw new ApiError(500, "Could not calculate product price");
+
+    const localizedProduct = {
+        ...localizeProduct(product, lang),
+        discount: price.discountPercentage,
+        originalUnitPrice: price.originalUnitPrice,
+        unitPrice: price.unitPrice,
+        offerId: price.offerId,
+        offerTitle: lang === "ar" ? price.offerTitleAr : price.offerTitleEn,
+    };
     const { category, ...productData } = localizedProduct;
 
     return {

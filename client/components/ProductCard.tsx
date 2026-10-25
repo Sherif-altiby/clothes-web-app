@@ -5,7 +5,7 @@ import { Check, Heart, ShoppingCart, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/lib/cart-context";
 import { useFavourites } from "@/lib/favourites-context";
 
@@ -16,6 +16,7 @@ export interface ProductCardProps {
   price: number;
   originalPrice?: number;
   discountPercentage?: number;
+  discountedPrice?: number;
   counts?: number;
   imageUrl: string;
   reviewSummary?: {
@@ -36,6 +37,7 @@ export function ProductCard({
   price,
   originalPrice,
   discountPercentage,
+  discountedPrice,
   counts,
   imageUrl,
   reviewSummary,
@@ -46,6 +48,7 @@ export function ProductCard({
   category,
 }: ProductCardProps) {
   const locale = useLocale();
+  const t = useTranslations("home.productDetails");
   const [justAdded, setJustAdded] = useState(false);
   const { addItem } = useCart();
   const { isFavourite: isSaved, toggleFavourite } = useFavourites();
@@ -53,10 +56,11 @@ export function ProductCard({
   const displayRating = reviewSummary?.averageRating ?? rating ?? 0;
   const displayReviewsCount = reviewSummary?.totalReviews ?? reviewsCount ?? 0;
 
-  const displayPrice = discountPercentage
+  const displayPrice = discountedPrice ?? (discountPercentage
     ? price - (price * discountPercentage) / 100
-    : price;
+    : price);
   const displayOriginal = originalPrice || (discountPercentage ? price : null);
+  const outOfStock = counts !== undefined && counts < 1;
 
   // Show a check mark on the button for a moment after adding
   useEffect(() => {
@@ -188,8 +192,9 @@ export function ProductCard({
           <Button
             size="icon"
             onClick={handleAddToCart}
-            aria-label="Add to cart"
-            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90"
+            disabled={outOfStock}
+            aria-label={outOfStock ? t("outOfStock") : t("addToCart")}
+            className="h-10 w-10 shrink-0 rounded-full shadow-md transition-all duration-300 hover:shadow-lg active:scale-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {justAdded ? (
               <Check className="h-4 w-4" />

@@ -268,6 +268,67 @@
       "deleting": "جارٍ الحذف...",
       "deleteSuccess": "تم حذف المنتج بنجاح.",
       "deleteError": "تعذّر حذف المنتج."
+    },
+    "offers": {
+      "accessRequired": "Administrator access required",
+      "accessDescription": "This page is available to administrators only.",
+      "eyebrow": "STORE MANAGEMENT",
+      "title": "Offer management",
+      "description": "Create scheduled promotions, choose eligible products or categories, and manage offer status.",
+      "create": "Create offer",
+      "createTitle": "Create an offer",
+      "editTitle": "Edit offer",
+      "formDescription": "Offer prices apply only to eligible products during the scheduled period. If offers overlap, only the highest discount applies.",
+      "titleEn": "English title",
+      "titleAr": "Arabic title",
+      "descriptionEn": "English description",
+      "descriptionAr": "Arabic description",
+      "discount": "Discount percentage",
+      "image": "Campaign image",
+      "chooseImage": "Choose an offer image",
+      "replaceImage": "Choose a replacement image",
+      "startsAt": "Starts at",
+      "endsAt": "Ends at",
+      "categories": "Eligible categories",
+      "products": "Eligible products",
+      "productSelectionLimit": "Showing the first 100 products. Use category targeting for larger collections.",
+      "requiredFields": "Complete all required fields, choose an image, and select at least one category or product.",
+      "invalidDiscount": "Enter a discount greater than 0 and no more than 100%.",
+      "invalidDates": "The end date must be after the start date.",
+      "invalidImageType": "Choose a JPEG, PNG, or WEBP image.",
+      "fileTooLarge": "The image must be 5 MB or smaller.",
+      "save": "Save changes",
+      "saving": "Saving...",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "activate": "Activate",
+      "pause": "Pause",
+      "archive": "Archive",
+      "offersList": "Offers",
+      "statuses": {
+        "ACTIVE": "Active",
+        "PAUSED": "Paused",
+        "ARCHIVED": "Archived",
+        "UPCOMING": "Scheduled",
+        "EXPIRED": "Expired"
+      },
+      "dateRange": "{start} – {end}",
+      "targetCount": "{categories} categories · {products} products",
+      "loadError": "Couldn't load offers",
+      "loadErrorDescription": "Check your connection and try again.",
+      "retry": "Try again",
+      "empty": "There are no offers yet.",
+      "createSuccess": "Offer created. It is paused until you activate it.",
+      "updateSuccess": "Offer updated.",
+      "activateSuccess": "Offer activated.",
+      "pauseSuccess": "Offer paused.",
+      "archiveSuccess": "Offer archived.",
+      "saveError": "Couldn't save the offer.",
+      "statusError": "Couldn't update offer status.",
+      "uploadCleanupError": "The offer wasn't saved, and its uploaded image couldn't be removed.",
+      "imageCleanupError": "The offer was saved, but its previous image couldn't be removed.",
+      "archiveConfirmTitle": "Archive this offer?",
+      "archiveConfirmDescription": "“{name}” will be permanently archived and can no longer be activated."
     }
   },
   "home": {
@@ -330,7 +391,6 @@
       "empty": "No categories are available yet."
     },
     "offers": {
-      "eyebrow": "A little something special",
       "title": "Good finds. Even better prices.",
       "subtitle": "The pieces you love, at prices worth making room for.",
       "loading": "Loading offers",
@@ -340,27 +400,13 @@
       "limitedOffer": "A limited-time offer",
       "off": "off",
       "shopNow": "Shop this offer",
-      "backToOffers": "Back to the home page",
-      "categoryLabel": "Offer category",
-      "browseCategory": "Browse this category",
-      "categoryLoadError": "The category could not be loaded.",
-      "loadingCategory": "Loading category...",
-      "categoryUnavailable": "This offer category is currently unavailable.",
-      "categoryRetry": "Try again",
-      "campaigns": {
-        "outerwear": {
-          "title": "The outerwear edit",
-          "description": "Layer up in considered styles made for the season ahead."
-        },
-        "footwear": {
-          "title": "Step into savings",
-          "description": "Find your new everyday favorites, from the ground up."
-        },
-        "activewear": {
-          "title": "Made to move",
-          "description": "Comfort-first essentials for every kind of day."
-        }
-      }
+      "unavailableTitle": "Offer unavailable",
+      "unavailableDescription": "This offer may have ended or is no longer available.",
+      "validUntil": "Offer ends {date}",
+      "productsTitle": "Included in this offer",
+      "productsCount": "{count, plural, one {# eligible product} other {# eligible products}}",
+      "noProducts": "There are no products available for this offer right now.",
+      "backToOffers": "Back to the home page"
     },
     "filters": {
       "search": "Search products",
@@ -462,6 +508,7 @@
     "cartCleared": "Your cart has been cleared.",
     "updateError": "We couldn't update your cart. Please try again.",
     "checkoutError": "We couldn't start checkout. Please try again.",
+    "checkoutPriceChanged": "Offer or product prices changed. Your cart has been updated; review it before checkout.",
     "continue": "Continue shopping",
     "clear": "Clear cart",
     "remove": "Remove {name}",
@@ -475,7 +522,8 @@
     "checkout": "Checkout",
     "checkoutPending": "Opening secure checkout...",
     "freeShippingLeft": "Add {amount} for free shipping",
-    "freeShippingReached": "You've unlocked free shipping"
+    "freeShippingReached": "You've unlocked free shipping",
+    "discountApplied": "{percent}% off"
   },
   "paymentResult": {
     "successTitle": "Payment received",

@@ -51,6 +51,7 @@ interface Product {
     baseSalary: number;
     profit: number;
     discount: number | null;
+    unitPrice: number;
     images: string[];
     counts: number;
     categoryId: string;
@@ -204,7 +205,7 @@ export function ProductDetails({ productId }: { productId: string }) {
 
     const originalPrice = product.baseSalary + product.profit;
     const discountPercentage = product.discount ?? 0;
-    const price = originalPrice * (1 - discountPercentage / 100);
+    const price = product.unitPrice;
     const savings = originalPrice - price;
     const hasDiscount = discountPercentage > 0 && savings > 0;
 

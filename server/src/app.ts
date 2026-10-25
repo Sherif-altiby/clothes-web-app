@@ -13,6 +13,7 @@ import { orderAdminRoutes, orderRoutes } from "./features/orders";
 import heroSlideRoutes from "./features/heroSlide/heroSlide.routes";
 import { uploadRouter } from "./features/upload";
 import { paymentRoutes } from "./features/payments";
+import { offerAdminRoutes, offerUserRoutes } from "./features/offers/offer.routes";
 
 const app = express();
 
@@ -34,6 +35,8 @@ app.use(langMiddleware);
 app.use("/api/user/categories", categoryUserRoutes);
 // category admin routes
 app.use("/api/admin/category", categoryAdminRoutes);
+app.use("/api/user/offers", offerUserRoutes);
+app.use("/api/admin/offers", offerAdminRoutes);
 
 
 // product user routes

@@ -268,6 +268,67 @@
       "deleting": "جارٍ الحذف...",
       "deleteSuccess": "تم حذف المنتج بنجاح.",
       "deleteError": "تعذّر حذف المنتج."
+    },
+    "offers": {
+      "accessRequired": "يلزم تسجيل الدخول بصلاحيات المسؤول",
+      "accessDescription": "هذه الصفحة متاحة للمسؤولين فقط.",
+      "eyebrow": "إدارة المتجر",
+      "title": "إدارة العروض",
+      "description": "أنشئ عروضًا مجدولة وحدد المنتجات أو الفئات المشمولة وأدر حالة كل عرض.",
+      "create": "إضافة عرض",
+      "createTitle": "إنشاء عرض",
+      "editTitle": "تعديل العرض",
+      "formDescription": "تُطبق أسعار العروض على المنتجات المشمولة خلال الفترة المحددة فقط. عند تداخل العروض، يُطبق الخصم الأعلى فقط.",
+      "titleEn": "العنوان بالإنجليزية",
+      "titleAr": "العنوان بالعربية",
+      "descriptionEn": "الوصف بالإنجليزية",
+      "descriptionAr": "الوصف بالعربية",
+      "discount": "نسبة الخصم",
+      "image": "صورة العرض",
+      "chooseImage": "اختر صورة للعرض",
+      "replaceImage": "اختر صورة بديلة",
+      "startsAt": "يبدأ في",
+      "endsAt": "ينتهي في",
+      "categories": "الفئات المشمولة",
+      "products": "المنتجات المشمولة",
+      "productSelectionLimit": "يتم عرض أول 100 منتج. استخدم استهداف الفئات للمجموعات الأكبر.",
+      "requiredFields": "أكمل الحقول المطلوبة واختر صورة وفئة أو منتجًا واحدًا على الأقل.",
+      "invalidDiscount": "أدخل خصمًا أكبر من 0 ولا يتجاوز 100٪.",
+      "invalidDates": "يجب أن يكون تاريخ الانتهاء بعد تاريخ البدء.",
+      "invalidImageType": "اختر صورة بصيغة JPEG أو PNG أو WEBP.",
+      "fileTooLarge": "يجب ألا يتجاوز حجم الصورة 5 ميغابايت.",
+      "save": "حفظ التغييرات",
+      "saving": "جارٍ الحفظ...",
+      "cancel": "إلغاء",
+      "edit": "تعديل",
+      "activate": "تفعيل",
+      "pause": "إيقاف مؤقت",
+      "archive": "أرشفة",
+      "offersList": "العروض",
+      "statuses": {
+        "ACTIVE": "نشط",
+        "PAUSED": "متوقف مؤقتًا",
+        "ARCHIVED": "مؤرشف",
+        "UPCOMING": "مجدول",
+        "EXPIRED": "منتهي"
+      },
+      "dateRange": "{start} – {end}",
+      "targetCount": "{categories} فئات · {products} منتجات",
+      "loadError": "تعذّر تحميل العروض",
+      "loadErrorDescription": "تحقق من اتصالك ثم أعد المحاولة.",
+      "retry": "أعد المحاولة",
+      "empty": "لا توجد عروض بعد.",
+      "createSuccess": "تم إنشاء العرض. سيبقى متوقفًا حتى تفعيله.",
+      "updateSuccess": "تم تحديث العرض.",
+      "activateSuccess": "تم تفعيل العرض.",
+      "pauseSuccess": "تم إيقاف العرض مؤقتًا.",
+      "archiveSuccess": "تمت أرشفة العرض.",
+      "saveError": "تعذّر حفظ العرض.",
+      "statusError": "تعذّر تحديث حالة العرض.",
+      "uploadCleanupError": "لم يُحفظ العرض وتعذّر حذف الصورة التي تم رفعها.",
+      "imageCleanupError": "تم حفظ العرض لكن تعذّر حذف صورته السابقة.",
+      "archiveConfirmTitle": "هل تريد أرشفة هذا العرض؟",
+      "archiveConfirmDescription": "سيتم أرشفة «{name}» نهائيًا ولن يمكن تفعيله مجددًا."
     }
   },
   "home": {
@@ -330,7 +391,6 @@
       "empty": "لا توجد فئات متاحة حاليًا."
     },
     "offers": {
-      "eyebrow": "اختيارات مميزة لك",
       "title": "قطع تحبها وأسعار أجمل",
       "subtitle": "اكتشف قطعك المفضلة بأسعار تستحق أن تفسح لها مكانًا.",
       "loading": "جارٍ تحميل العروض",
@@ -340,27 +400,13 @@
       "limitedOffer": "عرض لفترة محدودة",
       "off": "خصم",
       "shopNow": "تسوّق العرض",
-      "backToOffers": "العودة إلى الصفحة الرئيسية",
-      "categoryLabel": "فئة العرض",
-      "browseCategory": "تصفّح هذه الفئة",
-      "categoryLoadError": "تعذّر تحميل الفئة.",
-      "loadingCategory": "جارٍ تحميل الفئة...",
-      "categoryUnavailable": "فئة هذا العرض غير متاحة حاليًا.",
-      "categoryRetry": "أعد المحاولة",
-      "campaigns": {
-        "outerwear": {
-          "title": "أناقة الطبقات",
-          "description": "استعد للموسم بإطلالات أنيقة بطبقات دافئة."
-        },
-        "footwear": {
-          "title": "خطوات نحو التوفير",
-          "description": "اكتشف خياراتك اليومية المفضلة من الأساس."
-        },
-        "activewear": {
-          "title": "راحة في كل حركة",
-          "description": "أساسيات مريحة لكل لحظة من يومك."
-        }
-      }
+      "unavailableTitle": "العرض غير متاح",
+      "unavailableDescription": "ربما انتهت مدة العرض أو لم يعد متاحًا.",
+      "validUntil": "ينتهي العرض في {date}",
+      "productsTitle": "المنتجات المشمولة بالعرض",
+      "productsCount": "{count, plural, zero {لا توجد منتجات مشمولة} one {منتج واحد مشمول} two {منتجان مشمولان} few {# منتجات مشمولة} many {# منتجًا مشمولًا} other {# منتج مشمول}}",
+      "noProducts": "لا توجد منتجات متاحة لهذا العرض حاليًا.",
+      "backToOffers": "العودة إلى الصفحة الرئيسية"
     },
     "filters": {
       "search": "البحث عن المنتجات",
@@ -462,6 +508,7 @@
     "cartCleared": "تم إفراغ سلتك.",
     "updateError": "تعذّر تحديث سلتك. يرجى المحاولة مرة أخرى.",
     "checkoutError": "تعذّر بدء إتمام الشراء. يرجى المحاولة مرة أخرى.",
+    "checkoutPriceChanged": "تغيّرت أسعار المنتجات أو العروض. تم تحديث سلتك؛ راجعها قبل إتمام الشراء.",
     "continue": "متابعة التسوق",
     "clear": "إفراغ السلة",
     "remove": "إزالة {name}",
@@ -475,7 +522,8 @@
     "checkout": "إتمام الشراء",
     "checkoutPending": "جارٍ فتح صفحة الدفع الآمنة...",
     "freeShippingLeft": "أضف {amount} للحصول على شحن مجاني",
-    "freeShippingReached": "حصلت على الشحن المجاني"
+    "freeShippingReached": "حصلت على الشحن المجاني",
+    "discountApplied": "خصم {percent}٪"
   },
   "paymentResult": {
     "successTitle": "تم استلام الدفعة",

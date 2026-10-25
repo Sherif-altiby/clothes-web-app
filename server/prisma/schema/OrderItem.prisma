@@ -10,6 +10,11 @@ model OrderItem {
   quantity Int
 
   unitPrice Float
+  originalUnitPrice Float @default(0)
+  discountPercentage Float @default(0)
+  offerId String?
+  offerTitleAr String?
+  offerTitleEn String?
 
   createdAt DateTime @default(now())
 }

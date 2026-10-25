@@ -1,4 +1,4 @@
-import { PrismaClient, Role, OrderStatus, DiscountType } from "@prisma/client";
+import { PrismaClient, Role, OrderStatus, DiscountType, OfferStatus } from "@prisma/client";
 import type { Category, Coupon, Product, User } from "@prisma/client";
 import bcrypt from "bcrypt"; // use "bcryptjs" if that's what your app uses
 
@@ -305,6 +305,110 @@ if (categoriesData.length !== 10 || allProductsData.length !== 500) {
   throw new Error("Seed data must contain exactly 10 categories and 500 products.");
 }
 
+type OfferSeed = {
+  titleAr: string;
+  titleEn: string;
+  descriptionAr: string;
+  descriptionEn: string;
+  image: string;
+  discount: number;
+  categoryKey?: string;
+  productKeys?: string[];
+};
+
+const offersData: OfferSeed[] = [
+  {
+    titleAr: "تخفيضات الكتان الصيفية",
+    titleEn: "Summer Linen Edit",
+    descriptionAr: "اكتشف قطع القمصان المريحة واستمتع بخصم خاص لفترة محدودة.",
+    descriptionEn: "Discover easy-to-wear shirts with a special discount for a limited time.",
+    image: "https://picsum.photos/seed/offer-linen-edit/1200/800",
+    discount: 18,
+    categoryKey: "shirts",
+  },
+  {
+    titleAr: "أساسيات نهاية الأسبوع",
+    titleEn: "Weekend Basics",
+    descriptionAr: "تيشيرت أبيض كلاسيكي لإطلالة يومية سهلة بسعر أفضل.",
+    descriptionEn: "A classic white tee for effortless everyday style at a better price.",
+    image: "https://picsum.photos/seed/offer-weekend-basics/1200/800",
+    discount: 20,
+    productKeys: ["white-tshirt"],
+  },
+  {
+    titleAr: "أيام الدنيم",
+    titleEn: "Denim Days",
+    descriptionAr: "جدّد إطلالتك مع خصم على بنطال الجينز بقصة ضيقة.",
+    descriptionEn: "Refresh your look with a discount on slim-fit denim.",
+    image: "https://picsum.photos/seed/offer-denim-days/1200/800",
+    discount: 25,
+    productKeys: ["slim-jeans"],
+  },
+  {
+    titleAr: "طبقات جلدية أنيقة",
+    titleEn: "Leather Layer",
+    descriptionAr: "جاكيت جلد كلاسيكي يضيف لمسة مميزة لإطلالتك.",
+    descriptionEn: "A timeless leather jacket to give your look a distinctive finish.",
+    image: "https://picsum.photos/seed/offer-leather-layer/1200/800",
+    discount: 15,
+    productKeys: ["leather-jacket"],
+  },
+  {
+    titleAr: "تحرّك أكثر",
+    titleEn: "Move Further",
+    descriptionAr: "حذاء جري خفيف ومريح بسعر خاص لفترة محدودة.",
+    descriptionEn: "Lightweight, comfortable running shoes at a limited-time price.",
+    image: "https://picsum.photos/seed/offer-move-further/1200/800",
+    discount: 30,
+    productKeys: ["running-sneakers"],
+  },
+  {
+    titleAr: "إكسسوارات كل يوم",
+    titleEn: "Everyday Accessories",
+    descriptionAr: "أكمل إطلالتك بإكسسوارات عملية مع خصم على المجموعة.",
+    descriptionEn: "Finish your look with practical accessories at a discount.",
+    image: "https://picsum.photos/seed/offer-everyday-accessories/1200/800",
+    discount: 15,
+    categoryKey: "accessories",
+  },
+  {
+    titleAr: "أناقة المناسبات",
+    titleEn: "Occasion Edit",
+    descriptionAr: "اكتشف الفساتين الأنيقة المناسبة لمناسباتك الخاصة.",
+    descriptionEn: "Find elegant dresses for your next special occasion.",
+    image: "https://picsum.photos/seed/offer-occasion-edit/1200/800",
+    discount: 20,
+    categoryKey: "dresses",
+  },
+  {
+    titleAr: "راحة وحركة",
+    titleEn: "Active Move",
+    descriptionAr: "ملابس رياضية مريحة تساعدك على الحركة طوال اليوم.",
+    descriptionEn: "Comfortable sportswear made to keep you moving all day.",
+    image: "https://picsum.photos/seed/offer-active-move/1200/800",
+    discount: 18,
+    categoryKey: "sportswear",
+  },
+  {
+    titleAr: "موسم التريكو الناعم",
+    titleEn: "Soft Knit Season",
+    descriptionAr: "طبقات تريكو ناعمة وأنيقة بخصم مميز.",
+    descriptionEn: "Soft, stylish knitwear layers at a special discount.",
+    image: "https://picsum.photos/seed/offer-soft-knit/1200/800",
+    discount: 22,
+    categoryKey: "knitwear",
+  },
+  {
+    titleAr: "احملها بأناقة",
+    titleEn: "Carry It Well",
+    descriptionAr: "اختر حقيبتك المفضلة واستفد من خصم المجموعة.",
+    descriptionEn: "Choose your favorite bag and enjoy a collection-wide discount.",
+    image: "https://picsum.photos/seed/offer-carry-well/1200/800",
+    discount: 20,
+    categoryKey: "bags",
+  },
+];
+
 const couponsData = [
   {
     code: "WELCOME10",
@@ -440,6 +544,7 @@ const reviewsData = [
 
 async function clearDatabase() {
   // Reverse dependency order
+  await prisma.offer.deleteMany();
   await prisma.couponUsage.deleteMany();
   await prisma.coupon.deleteMany();
   await prisma.review.deleteMany();
@@ -515,6 +620,34 @@ async function main() {
     });
   }
   console.log(`✔ Products: ${allProductsData.length}`);
+
+  /* -------------------------------- Offers -------------------------------- */
+  for (const offer of offersData) {
+    await prisma.offer.create({
+      data: {
+        titleAr: offer.titleAr,
+        titleEn: offer.titleEn,
+        descriptionAr: offer.descriptionAr,
+        descriptionEn: offer.descriptionEn,
+        image: offer.image,
+        discount: offer.discount,
+        startsAt: daysAgo(7),
+        endsAt: daysFromNow(30),
+        status: OfferStatus.ACTIVE,
+        categories: offer.categoryKey
+          ? { create: { categoryId: categoriesByKey[offer.categoryKey].id } }
+          : undefined,
+        products: offer.productKeys
+          ? {
+              create: offer.productKeys.map((productKey) => ({
+                productId: productsByKey[productKey].id,
+              })),
+            }
+          : undefined,
+      },
+    });
+  }
+  console.log(`✔ Offers: ${offersData.length}`);
 
   /* ------------------------------- Coupons -------------------------------- */
   const couponsByCode: Record<string, Coupon> = {};

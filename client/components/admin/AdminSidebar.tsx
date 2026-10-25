@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Tooltip } from "radix-ui";
 import {
   ClipboardList,
+  BadgePercent,
   Hexagon,
   MessageSquareText,
   Package,
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 type NavKey =
   | "products"
   | "categories"
+  | "offers"
   | "orders"
   | "reviews"
   | "hero"
@@ -37,6 +39,7 @@ const sections: { key: SectionKey; items: NavItem[] }[] = [
     items: [
       { href: "/admin", key: "products", icon: Package },
       { href: "/admin/categories", key: "categories", icon: Tags },
+      { href: "/admin/offers", key: "offers", icon: BadgePercent },
     ],
   },
   {
@@ -72,6 +75,7 @@ const text = {
     items: {
       products: "المنتجات",
       categories: "الفئات",
+      offers: "العروض",
       orders: "الطلبات",
       reviews: "التقييمات",
       hero: "الواجهة الرئيسية",
