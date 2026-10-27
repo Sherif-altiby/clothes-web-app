@@ -135,9 +135,7 @@ export function AdminOffersDashboard() {
     const categoriesQuery = useQuery({
         queryKey: ["categories", locale],
         queryFn: async () => {
-            const response = await api.get<ApiResponse<Category[]>>("/user/categories", {
-                headers: { "Accept-Language": locale },
-            });
+            const response = await api.get<ApiResponse<Category[]>>("/user/categories");
             return response.data.data;
         },
         enabled: isAdmin,

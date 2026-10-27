@@ -46,7 +46,7 @@ export function OfferDetails({ offerId }: { offerId: string }) {
         queryFn: async ({ signal }) => {
             const response = await api.get<ApiResponse<Offer>>(
                 `/user/offers/${encodeURIComponent(offerId)}`,
-                { headers: { "Accept-Language": locale }, signal },
+                { signal },
             );
             return response.data.data;
         },

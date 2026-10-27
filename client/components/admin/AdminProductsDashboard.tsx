@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { authUserSchema } from "@/lib/validations/login";
 import { api } from "@/lib/api";
+import { CURRENT_USER_QUERY_KEY } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { DataPagination } from "./DataPagination";
 import { ProductEditorDialog } from "./ProductEditorDialog";
@@ -47,7 +48,6 @@ import { SearchInput } from "../shared/search-input";
 const PAGE_SIZE = 10;
 const LOW_STOCK_THRESHOLD = 5;
 const ADMIN_PRODUCTS_QUERY_KEY = ["admin-products"] as const;
-const CURRENT_USER_QUERY_KEY = ["auth", "me"] as const;
 
 interface ProductsPage {
   pagination: ProductPagination;

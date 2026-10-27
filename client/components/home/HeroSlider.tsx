@@ -49,10 +49,7 @@ export function HeroSlider() {
     } = useQuery({
         queryKey: ["hero-slides", locale],
         queryFn: async ({ signal }) => {
-            const response = await api.get<ApiResponse<HeroSlide[]>>("/user/hero-slides", {
-                headers: { "Accept-Language": locale },
-                signal,
-            });
+            const response = await api.get<ApiResponse<HeroSlide[]>>("/user/hero-slides", { signal });
 
             return response.data.data
                 .filter((slide) => slide.isActive)

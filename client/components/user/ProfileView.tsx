@@ -5,10 +5,9 @@ import { CalendarDays, Mail, MapPin, Phone, ShieldCheck, UserRound } from "lucid
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { api } from "@/lib/api";
+import { CURRENT_USER_QUERY_KEY } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import { authUserSchema } from "@/lib/validations/login";
-
-const CURRENT_USER_QUERY_KEY = ["auth", "me"] as const;
 
 export function ProfileView() {
   const locale = useLocale();

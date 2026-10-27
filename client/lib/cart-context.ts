@@ -102,7 +102,6 @@ async function requestCart(
         url,
         method,
         data,
-        headers: { "Accept-Language": locale },
     });
     return parseCartResponse(response.data, locale);
 }
@@ -120,7 +119,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         queryKey: cartQueryKey,
         queryFn: async ({ signal }) => {
             const response = await api.get("/user/cart", {
-                headers: { "Accept-Language": locale },
                 signal,
             });
             return parseCartResponse(response.data, locale);

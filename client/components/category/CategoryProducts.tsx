@@ -74,7 +74,6 @@ export function CategoryProducts({ categoryId }: CategoryProductsProps) {
           orderPrice,
           page,
         },
-        headers: { "Accept-Language": locale },
       });
 
       return response.data.data;

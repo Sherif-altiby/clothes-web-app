@@ -44,9 +44,7 @@ export function FeaturedProducts() {
     const { data: categories } = useQuery({
         queryKey: ["categories", locale],
         queryFn: async () => {
-            const response = await api.get<ApiResponse<Category[]>>("/user/categories", {
-                headers: { "Accept-Language": locale },
-            });
+            const response = await api.get<ApiResponse<Category[]>>("/user/categories");
 
             return response.data.data;
         },
@@ -61,7 +59,6 @@ export function FeaturedProducts() {
         queryFn: async ({ signal }) => {
             const response = await api.get<ApiResponse<ProductsResponse>>("/user/products", {
                 params: { limit: 8 },
-                headers: { "Accept-Language": locale },
                 signal,
             });
 

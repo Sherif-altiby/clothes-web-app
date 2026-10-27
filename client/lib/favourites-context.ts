@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { z } from "zod";
-import { api } from "@/lib/api";
+import { api, USER_FAVORITES_ENDPOINT } from "@/lib/api";
 
 /**
  * Product data used to render a favourite in the shared product-card component.
@@ -87,7 +87,7 @@ function toFavouriteItem(product: z.infer<typeof favoritesResponseSchema>["data"
 }
 
 async function fetchFavorites(signal?: AbortSignal): Promise<FavouriteItem[]> {
-    const response = await api.get("/user/favorites", {
+    const response = await api.get(USER_FAVORITES_ENDPOINT, {
         params: { limit: 100 },
         signal,
     });
@@ -101,7 +101,7 @@ async function fetchFavorites(signal?: AbortSignal): Promise<FavouriteItem[]> {
 }
 
 async function deleteFavorite(productId: string): Promise<void> {
-    await api.delete(`/user/favorites/${encodeURIComponent(productId)}`);
+    await api.delete(`${USER_FAVORITES_ENDPOINT}/${encodeURIComponent(productId)}`);
 }
 
 export function FavouritesProvider({ children }: { children: ReactNode }) {
@@ -129,7 +129,7 @@ export function FavouritesProvider({ children }: { children: ReactNode }) {
 
     const toggleMutation = useMutation({
         mutationFn: async (item: FavouriteItem) => {
-            const response = await api.post("/user/favorites/toggle", { productId: item.id });
+            const response = await api.post(`${USER_FAVORITES_ENDPOINT}/toggle`, { productId: item.id });
             const parsed = toggleResponseSchema.safeParse(response.data);
 
             if (!parsed.success) {

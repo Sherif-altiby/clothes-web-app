@@ -27,10 +27,7 @@ export function OffersSection() {
     const { data: offers, isLoading, isError, refetch } = useQuery({
         queryKey: ["offers", locale],
         queryFn: async ({ signal }) => {
-            const response = await api.get<ApiResponse<Offer[]>>("/user/offers", {
-                headers: { "Accept-Language": locale },
-                signal,
-            });
+            const response = await api.get<ApiResponse<Offer[]>>("/user/offers", { signal });
             return response.data.data;
         },
         staleTime: 60_000,

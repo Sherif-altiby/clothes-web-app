@@ -133,7 +133,6 @@ export function ProductDetails({ productId }: { productId: string }) {
             const response = await api.get<ApiResponse<Product>>(
                 `/user/products/${encodeURIComponent(productId)}`,
                 {
-                    headers: { "Accept-Language": locale },
                     signal,
                 }
             );

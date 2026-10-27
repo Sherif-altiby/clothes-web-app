@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
 import { QueryProvider } from "@/components/QueryProvider";
+import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/lib/cart-context";
 import { FavouritesProvider } from "@/lib/favourites-context";
 import "../globals.css";
@@ -52,14 +53,21 @@ export default async function LocaleLayout({
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider messages={messages}>
-          <QueryProvider>
-            <CartProvider>
-              <FavouritesProvider>
-                {children}
-                <Toaster position="top-center" richColors dir={locale === "ar" ? "rtl" : "ltr"} />
-              </FavouritesProvider>
-            </CartProvider>
-          </QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <QueryProvider>
+              <CartProvider>
+                <FavouritesProvider>
+                  {children}
+                  <Toaster position="top-center" richColors dir={locale === "ar" ? "rtl" : "ltr"} />
+                </FavouritesProvider>
+              </CartProvider>
+            </QueryProvider>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

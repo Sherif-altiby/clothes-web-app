@@ -60,10 +60,7 @@ export function PriceFilter({
   } = useQuery({
     queryKey: ["categories", locale],
     queryFn: async () => {
-      const response = await api.get<ApiResponse<Category[]>>(
-        "/user/categories",
-        { headers: { "Accept-Language": locale } }
-      );
+      const response = await api.get<ApiResponse<Category[]>>("/user/categories");
       return response.data.data;
     },
     staleTime: 5 * 60_000,
